@@ -7,12 +7,15 @@ enum class TokenType(val re: Regex) {
     COMMENT("\\/\\/.+".toRegex()),
     LPAREN("\\(".toRegex()),
     RPAREN("\\)".toRegex()),
-    LCURLYBRACKET("\\{".toRegex()),
-    RCURLYBRACKET("\\}".toRegex()),
+    LBRACE("\\{".toRegex()),
+    RBRACE("\\}".toRegex()),
     LTRIANGLE("<".toRegex()),
     RTRIANGLE(">".toRegex()),
     LET("let".toRegex()),
     DEF("=(?!>)".toRegex()),
-    ARROW("=>".toRegex())
+    ARROW("=>".toRegex()),
+    STRING("\".*\"".toRegex()),
+    NUMBER("[0-9.+]+".toRegex()),
+    EXTEND("extend(?:\\s)".toRegex());
 
 }
