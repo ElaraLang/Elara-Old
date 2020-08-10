@@ -59,4 +59,33 @@ class LexerTests {
 
         assertEquals(expectedTokenStream, tokenTypes)
     }
+
+    @Test
+    fun `Test simple lexer output with basic division extension function`() {
+        val testInput = """
+            extend Number {
+              let isDivisableBy = (Int value) => this % value == 0
+            }
+        """.trimIndent()
+
+        val expectedTokenStream = listOf(
+            EXTEND, IDENTIFIER, LBRACE, NEWLINE, LET, IDENTIFIER, DEF, LPAREN, IDENTIFIER, IDENTIFIER, RPAREN, ARROW, IDENTIFIER, IDENTIFIER, IDENTIFIER, EQUAL, NUMBER, NEWLINE, RBRACE, EOF
+        )
+
+        val tokenStream = ElaraLexer().lex(testInput)
+        assertEquals(expectedTokenStream, tokenStream.map{it.type})
+    }
+
+    @Test
+    fun `Test simple lexer output with a basic mutable variable`() {
+        val testInput = """
+            let mut someMutableNumber = 2
+        """.trimIndent()
+
+        val expectedTokenStream = listOf(
+            LET, MUT, IDENTIFIER, DEF, NUMBER, EOF
+        )
+        assertEquals(expectedTokenStream, ElaraLexer().lex(testInput).map { it.type })
+    }
+
 }
