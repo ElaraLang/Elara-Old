@@ -19,6 +19,10 @@ enum class TokenType(val regex: Regex) {
     NUMBER("[0-9.+]+".toRegex()),
     EXTEND("extend".toRegex()),
     RETURN("return".toRegex()),
+    //Punctuation
+    COMMA(",".toRegex()),
+    COLON(":".toRegex()),
+
     IDENTIFIER("[^\"\\s)(]+".toRegex()); //this has the potential to get *very* messy...
 
     companion object {
