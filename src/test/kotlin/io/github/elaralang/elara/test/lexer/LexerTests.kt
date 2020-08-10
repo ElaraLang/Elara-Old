@@ -64,12 +64,14 @@ class LexerTests {
     fun `Test simple lexer output with basic division extension function`() {
         val testInput = """
             extend Number {
-              let isDivisableBy = (Int value) => this % value == 0
+              let isDivisibleBy = (Int value) => this % value == 0
             }
         """.trimIndent()
 
         val expectedTokenStream = listOf(
-            EXTEND, IDENTIFIER, LBRACE, NEWLINE, LET, IDENTIFIER, DEF, LPAREN, IDENTIFIER, IDENTIFIER, RPAREN, ARROW, IDENTIFIER, IDENTIFIER, IDENTIFIER, EQUAL, NUMBER, NEWLINE, RBRACE, EOF
+            EXTEND, IDENTIFIER, LBRACE, NEWLINE,
+            LET, IDENTIFIER, DEF, LPAREN, IDENTIFIER, IDENTIFIER, RPAREN, ARROW, IDENTIFIER, IDENTIFIER, IDENTIFIER, EQUAL, NUMBER, NEWLINE,
+            RBRACE, EOF
         )
 
         val tokenStream = ElaraLexer().lex(testInput)
