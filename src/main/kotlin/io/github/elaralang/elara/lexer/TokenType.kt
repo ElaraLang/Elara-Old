@@ -15,9 +15,9 @@ enum class TokenType(val regex: Regex) {
     LET("let".toRegex()),
     EXTEND("extend".toRegex()),
     RETURN("return".toRegex()),
-    EQUAL("==(?!>)".toRegex()),
     MUT("mut".toRegex()),
 
+    EQUAL("==(?!>)".toRegex()),
     DEF("=(?!>)".toRegex()),
     ARROW("=>".toRegex()),
 
