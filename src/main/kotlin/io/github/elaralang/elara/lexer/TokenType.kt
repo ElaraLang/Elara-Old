@@ -16,6 +16,9 @@ enum class TokenType(val regex: Regex) {
     EXTEND("extend".toRegex()),
     RETURN("return".toRegex()),
     MUT("mut".toRegex()),
+    STRUCT("struct".toRegex()),
+    NAMESPACE("namespace".toRegex()),
+    IMPORT("import".toRegex()),
 
     EQUAL("==(?!>)".toRegex()),
     DEF("=(?!>)".toRegex()),
@@ -26,6 +29,8 @@ enum class TokenType(val regex: Regex) {
 
     COMMA(",".toRegex()),
     COLON(":".toRegex()),
+    SLASH("/".toRegex()),
+
     IDENTIFIER("[^\"\\s)(]+".toRegex()); //this has the potential to get *very* messy...
 
     companion object {
