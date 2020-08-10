@@ -12,12 +12,14 @@ enum class TokenType(val regex: Regex) {
     LTRIANGLE("<".toRegex()),
     RTRIANGLE(">".toRegex()),
     LET("let".toRegex()),
+    EQUAL("==(?!>)".toRegex()),
     DEF("=(?!>)".toRegex()),
     ARROW("=>".toRegex()),
     STRING("\".*\"".toRegex()),
     NUMBER("[0-9.+]+".toRegex()),
-    EXTEND("extend(?:\\s)".toRegex()),
-    IDENTIFIER("[^\"\\s]+".toRegex());
+    EXTEND("extend".toRegex()),
+    RETURN("return".toRegex()),
+    IDENTIFIER("[^\"\\s)(]+".toRegex()); //this has the potential to get *very* messy...
 
     companion object {
         // Creating regex to capture tokens
