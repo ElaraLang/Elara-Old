@@ -19,4 +19,11 @@ enum class TokenType(val regex: Regex) {
     EXTEND("extend(?:\\s)".toRegex()),
     IDENTIFIER("[^\"\\s]+".toRegex());
 
+    companion object {
+        // Creating regex to capture tokens
+        val MATCHING_REGEX = values().joinToString(separator = "") {
+            "|(?<${it.name}>${it.regex})"
+        }.substring(1) //why is this necessary?
+            .toRegex()
+    }
 }

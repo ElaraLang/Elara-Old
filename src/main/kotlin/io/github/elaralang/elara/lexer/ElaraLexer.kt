@@ -4,16 +4,12 @@ class ElaraLexer {
 
     fun lex(value: String): List<Token> {
 
-        // Creating regex to capture tokens
-        val tokenPatternsBuffer = TokenType.values().joinToString(separator = "") {
-            "|(?<${it.name}>${it.regex})"
-        }.substring(1) //why is this necessary?
+        val tokenPatterns = TokenType.MATCHING_REGEX
 
-        val tokenPatterns = tokenPatternsBuffer.toRegex()
         val results = tokenPatterns.findAll(value)
 
-        // Loop through matcher till all tokens are found
-        val tokens = results.mapNotNull { result ->
+        // Loop through results till all tokens are found
+        return results.mapNotNull { result ->
             for (tokenType in TokenType.values()) {
                 val matchGroup = result.groups[tokenType.name]
                 if (matchGroup != null) {
@@ -22,8 +18,6 @@ class ElaraLexer {
             }
             null
         }.toList()
-
-        return tokens
 
     }
 

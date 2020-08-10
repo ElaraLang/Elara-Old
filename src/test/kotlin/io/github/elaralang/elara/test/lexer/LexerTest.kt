@@ -2,6 +2,7 @@ package io.github.elaralang.elara.test.lexer
 
 import io.github.elaralang.elara.lexer.ElaraLexer
 import io.github.elaralang.elara.lexer.TokenType
+import org.junit.jupiter.api.RepeatedTest
 import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
 
