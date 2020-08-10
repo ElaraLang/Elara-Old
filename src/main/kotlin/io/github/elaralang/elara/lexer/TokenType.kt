@@ -2,7 +2,7 @@ package io.github.elaralang.elara.lexer
 
 enum class TokenType(val regex: Regex) {
 
-    NEWLINE("\n".toRegex()),
+    NEWLINE("\n|[\r\n]".toRegex()),
     EOF("$(?![\r\n])".toRegex()),
     COMMENT("//.+".toRegex()),
     LPAREN("\\(".toRegex()),
@@ -11,15 +11,19 @@ enum class TokenType(val regex: Regex) {
     RBRACE("}".toRegex()),
     LTRIANGLE("<".toRegex()),
     RTRIANGLE(">".toRegex()),
+
     LET("let".toRegex()),
-    EQUAL("==(?!>)".toRegex()),
-    DEF("=(?!>)".toRegex()),
-    ARROW("=>".toRegex()),
-    STRING("\".*\"".toRegex()),
-    NUMBER("[0-9.+]+".toRegex()),
     EXTEND("extend".toRegex()),
     RETURN("return".toRegex()),
+    EQUAL("==(?!>)".toRegex()),
     MUT("mut".toRegex()),
+
+    DEF("=(?!>)".toRegex()),
+    ARROW("=>".toRegex()),
+
+    STRING("\".*\"".toRegex()),
+    NUMBER("[0-9.+]+".toRegex()),
+
     COMMA(",".toRegex()),
     COLON(":".toRegex()),
     IDENTIFIER("[^\"\\s)(]+".toRegex()); //this has the potential to get *very* messy...
