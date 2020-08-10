@@ -7,13 +7,12 @@ class ElaraLexer {
     fun lex(value: String): List<Token> {
 
         val tokens = mutableListOf<Token>()
-        val tokenPatternsBuffer = StringBuilder()
+
         // Creating regex to capture tokens
-        TokenType.values().forEach {
-            tokenPatternsBuffer.append(
-                "|(?<${it.name}>${it.regex})"
-            )
+        val tokenPatternsBuffer = TokenType.values().joinToString(separator = "") {
+            "|(?<${it.name}>${it.regex})"
         }
+
 
         val tokenPatterns = tokenPatternsBuffer.substring(1).toRegex().toPattern()
         val matcher = tokenPatterns.matcher(value)
