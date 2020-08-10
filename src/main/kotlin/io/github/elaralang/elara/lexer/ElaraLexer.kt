@@ -11,7 +11,7 @@ class ElaraLexer {
         // Creating regex to capture tokens
         TokenType.values().forEach {
             tokenPatternsBuffer.append(
-                "|(?<${it.name}>${it.re})"
+                "|(?<${it.name}>${it.regex})"
             )
         }
 

@@ -1,6 +1,6 @@
 package io.github.elaralang.elara.lexer
 
-class Token(private val type: TokenType, private val value: String) {
+class Token(val type: TokenType, val value: String) {
 
     override fun toString(): String {
         return "${type.name} - $value"
