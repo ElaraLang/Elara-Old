@@ -2,7 +2,7 @@ parser grammar ElaraParser;
 
 options { tokenVocab=ElaraLexer; }
 
-namespaceName : NAMESPACE_IDENTIFIER (SLASH NAMESPACE_IDENTIFIER)*;
+namespaceName : IDENTIFIER (SLASH IDENTIFIER)*;
 
 namespaceDeclaration : NAMESPACE namespaceName;
 importDeclaration : IMPORT namespaceName;
@@ -18,11 +18,11 @@ file
     ;
 
 body :
-    line*
+    line (NEWLINE line)* NEWLINE*
     ;
 
-line : (statement NEWLINE)
-     | (expression NEWLINE)
+line : (statement)
+     | (expression)
      | NEWLINE+ //empty line
      ;
 
@@ -33,11 +33,43 @@ variableDefinition :
     LET IDENTIFIER DEF expression
     ;
 
-expression :
-    literal
+expression
+    : literal
+    | function
+    | functionCall
+    | variableReference
     ;
 
+function
+    : functionSignature block
+    ;
+
+functionSignature
+    : LPAREN (functionParameter (COMMA functionParameter)*)? RPAREN
+      ARROW IDENTIFIER?
+    ;
+
+functionParameter
+    : IDENTIFIER IDENTIFIER (DEF expression)?
+    ;
+
+block
+    : LBRACE
+     line*
+     RBRACE
+    ;
 
 literal :
     NUMBER
+    ;
+
+variableReference
+    : IDENTIFIER
+    ;
+
+functionCall
+    : (IDENTIFIER LPAREN RPAREN)
+    | IDENTIFIER expression+
+    | IDENTIFIER LPAREN (expression (COMMA expression)*) RPAREN
+
     ;

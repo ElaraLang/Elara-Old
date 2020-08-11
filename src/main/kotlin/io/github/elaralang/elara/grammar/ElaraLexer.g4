@@ -2,7 +2,8 @@
 lexer grammar ElaraLexer;
 
 NEWLINE :  ('\r' '\n' | '\n' | '\r') -> skip;
-WHITESPACE: [ \t]+ -> skip;
+fragment SPACE: [ \t];
+WHITESPACE: SPACE+ -> skip;
 
 COMMENT: '//'  ~[\r\n]* -> skip;
 
@@ -37,6 +38,4 @@ COMMA : ',';
 COLON : ':';
 SLASH : '/';
 
-fragment PLAIN_TEXT : [a-zA-Z]+;
-NAMESPACE_IDENTIFIER : PLAIN_TEXT;
-IDENTIFIER : PLAIN_TEXT | ~('(' | ')')+;
+IDENTIFIER : ~[ {}(),]+;
