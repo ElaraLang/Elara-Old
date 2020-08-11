@@ -1,7 +1,8 @@
 //For the sake of simplicity, we'll have this, even though it's unused in actual code
 lexer grammar ElaraLexer;
 
-NEWLINE :  ('\r' '\n' | '\n' | '\r') -> skip;
+NEWLINE :  ('\r' '\n' | '\n' | '\r') -> channel(HIDDEN);
+ENDLINE : ';' | NEWLINE;
 fragment SPACE: [ \t];
 WHITESPACE: SPACE+ -> skip;
 
@@ -38,4 +39,4 @@ COMMA : ',';
 COLON : ':';
 SLASH : '/';
 
-IDENTIFIER : ~[ {}(),]+;
+IDENTIFIER : ~[ {}(),'\n';]+;

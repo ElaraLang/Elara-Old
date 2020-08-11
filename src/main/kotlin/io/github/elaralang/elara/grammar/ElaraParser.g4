@@ -17,22 +17,31 @@ file
     : headers body EOF
     ;
 
-body :
-    line (NEWLINE line)* NEWLINE*
+body
+    : lines
     ;
 
-line : (statement)
-     | (expression)
+lines
+     : line (ENDLINE line)* ENDLINE*
+     ;
+
+line : statement
+     | expression
      | NEWLINE+ //empty line
      ;
 
-statement : variableDefinition
+statement
+    : variableDefinition
+    | singleFunctionDefinition
     ;
 
 variableDefinition :
     LET IDENTIFIER DEF expression
     ;
 
+singleFunctionDefinition:
+    LET IDENTIFIER ARROW expression
+    ;
 expression
     : literal
     | function
@@ -55,12 +64,13 @@ functionParameter
 
 block
     : LBRACE
-     line*
+     lines
      RBRACE
     ;
 
-literal :
-    NUMBER
+literal
+    : NUMBER
+    | STRING
     ;
 
 variableReference
