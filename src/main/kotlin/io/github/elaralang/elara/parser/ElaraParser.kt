@@ -1,7 +1,6 @@
 package io.github.elaralang.elara.parser
 
 import io.github.elaralang.elara.exceptions.invalidSyntax
-import io.github.elaralang.elara.lexer.ElaraLexer
 import io.github.elaralang.elara.lexer.Token
 import io.github.elaralang.elara.lexer.TokenType
 import java.util.*
@@ -9,6 +8,7 @@ import java.util.*
 class ElaraParser(tokenList: List<Token>) {
 
     private val tokens = Stack<Token>()
+
     init {
         tokens.addAll(tokenList)
         tokens.reverse()
@@ -39,6 +39,9 @@ class ElaraParser(tokenList: List<Token>) {
                 // ambiguous => requires next Token for context
                 TokenType.IDENTIFIER -> {
                     return parseExpression(currentToken)
+                }
+                TokenType.NUMBER -> {
+                    return NumberNode(currentToken.text.toLong())
                 }
             }
 
