@@ -12,5 +12,5 @@ sealed class ASTNode() {
 
 class RootNode: ASTNode()
 
-class AssignmentNode(val identifier: String,val value: ASTNode): ASTNode()
+data class AssignmentNode(val identifier: String,val value: ASTNode): ASTNode()
 
