@@ -35,4 +35,12 @@ class RootNode : ASTNode() {
 data class DeclarationNode(val identifier: String, val mutable: Boolean, val value: ASTNode) : ASTNode()
 data class AssignmentNode(val identifier: String, val value: ASTNode) : ASTNode()
 data class NumberNode(val number: Long) : ASTNode()
+data class StringNode(val data: String) : ASTNode()
+data class IdentifierNode(val identifier: String) : ASTNode()
+class ParameterNode: ASTNode() {
+    override fun toString(): String {
+        return "ParameterNode(children=$children)"
+    }
+}
+data class FunctionCallNode(val identifier: String, val parameters: ParameterNode): ASTNode()
 
