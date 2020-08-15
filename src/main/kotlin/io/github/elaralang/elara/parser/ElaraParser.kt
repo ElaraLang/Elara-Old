@@ -141,8 +141,8 @@ class ElaraParser(tokenList: List<Token>) {
         return paramNode
     }
 
-    private fun parseFunctionCall(identifier: Token, separator: TokenType?, endtype: TokenType): FunctionCallNode {
-        val params = parseParams(separator, endtype)
+    private fun parseFunctionCall(identifier: Token, separator: TokenType?, endType: TokenType): FunctionCallNode {
+        val params = parseParams(separator, endType)
         return FunctionCallNode(identifier.text, params)
     }
 
