@@ -130,7 +130,6 @@ class ElaraParser(tokenList: List<Token>) {
             val token = tokens.peek()
             val param =
                 parseExpression(null, paramClosers, true) ?: invalidSyntax("Unexpected token in function call $token")
-            println("param = ${param}")
 
             paramNode.addChild(param)
             if (separator != null) {
