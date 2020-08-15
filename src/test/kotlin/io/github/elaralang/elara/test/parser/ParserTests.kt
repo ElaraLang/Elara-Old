@@ -61,6 +61,27 @@ class ParserTests {
         }, ast)
     }
     @Test
+    fun `Test Correct Parsing of Function Call Without Parentheses`() {
+        val text = """
+            someFunction param1 123 param3
+        """.trimIndent()
+        val tokens = lexer.lex(text)
+        val ast = ElaraParser(tokens).parse()
+
+        assertEquals(RootNode().apply {
+            addChild(
+                FunctionCallNode(
+                    "someFunction",
+                    ParameterNode().apply {
+                        addChild(IdentifierNode("param1"))
+                        addChild(NumberNode(123))
+                        addChild(IdentifierNode("param3"))
+                    }
+                )
+            )
+        }, ast)
+    }
+    @Test
     fun `Test Correct Parsing of Function Definition`() {
         val text = """
             :(a,b) => {
