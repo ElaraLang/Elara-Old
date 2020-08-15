@@ -148,4 +148,65 @@ class ParserTests {
             )
         }, ast)
     }
+
+
+    @Test
+    fun `Test Correct Parsing of Struct field getter`() {
+        val text = """
+            someStructInstance.someField
+        """.trimIndent()
+        val tokens = lexer.lex(text)
+        val ast = ElaraParser(tokens).parse()
+        print(ast)
+        assertEquals(RootNode().apply {
+            addChild(
+                    ContextNode(
+                            "someStructInstance",
+                            IdentifierNode("someField")
+                    )
+            )
+        }, ast)
+    }
+
+    @Test
+    fun `Test Correct Parsing of Struct field setter`() {
+        val text = """
+            someStructInstance.someField = 5
+        """.trimIndent()
+        val tokens = lexer.lex(text)
+        val ast = ElaraParser(tokens).parse()
+        print(ast)
+        assertEquals(RootNode().apply {
+            addChild(
+                    ContextNode(
+                            "someStructInstance",
+                            AssignmentNode("someField", NumberNode(5))
+                    )
+            )
+        }, ast)
+    }
+    @Test
+    fun `Test Correct Parsing of Struct function Call`() {
+        val text = """
+            someStructInstance.someFunction(15)
+        """.trimIndent()
+        val tokens = lexer.lex(text)
+        val ast = ElaraParser(tokens).parse()
+        print(ast)
+        assertEquals(RootNode().apply {
+            addChild(
+                    ContextNode(
+                            "someStructInstance",
+                            FunctionCallNode(
+                                    "someFunction",
+                                    ParameterNode().apply {
+                                        addChild(
+                                                NumberNode(15)
+                                        )
+                                    }
+                            )
+                    )
+            )
+        }, ast)
+    }
 }

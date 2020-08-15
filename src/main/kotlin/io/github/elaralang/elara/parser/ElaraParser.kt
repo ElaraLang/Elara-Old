@@ -1,6 +1,7 @@
 package io.github.elaralang.elara.parser
 
 import io.github.elaralang.elara.exceptions.invalidSyntax
+import io.github.elaralang.elara.lexer.ElaraLexer
 import io.github.elaralang.elara.lexer.Token
 import io.github.elaralang.elara.lexer.TokenType
 import java.util.*
@@ -19,7 +20,6 @@ class ElaraParser(tokenList: List<Token>) {
         while (tokens.isNotEmpty()) {
             val child = parseExpression()
             child?.let { rootNode.addChild(it) }
-
         }
         return rootNode
     }
@@ -98,6 +98,9 @@ class ElaraParser(tokenList: List<Token>) {
                         }
                         TokenType.NEWLINE -> {
                             parseToken(lastToken)
+                        }
+                        TokenType.DOT -> {
+                            parseContextExpression(lastToken)
                         }
                         else -> {
                             if (function) {
@@ -234,6 +237,11 @@ class ElaraParser(tokenList: List<Token>) {
         val value: ASTNode = parseExpression() ?: invalidSyntax("Could not find expression to assign to ${id.text}")
         return DeclarationNode(id.text, mutable, value)
     }
+    private fun parseContextExpression(identifier: Token): ContextNode {
+        val expression = parseExpression() ?: invalidSyntax("Invalid expression provided for scope ${identifier.text}")
+        if (expression is ScopeNode) invalidSyntax("Scope cannot be created in a contextual call!")
+        return ContextNode(identifier.text, expression)
+    }
 
     private fun parseAssignment(lastToken: Token): AssignmentNode {
         val value = parseExpression() ?: invalidSyntax("Value expected for assignment")
@@ -243,5 +251,15 @@ class ElaraParser(tokenList: List<Token>) {
     private fun cleanNewLines() {
         while ( !tokens.empty() && tokens.peek().type == TokenType.NEWLINE) tokens.pop()
     }
+
 }
 
+fun main() {
+    val text = """
+            test.test
+        """.trimIndent()
+    val tokens = ElaraLexer().lex(text)
+    println(tokens)
+    val ast = ElaraParser(tokens).parse()
+    println(ast)
+}
