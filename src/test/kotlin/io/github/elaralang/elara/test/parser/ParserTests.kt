@@ -84,7 +84,7 @@ class ParserTests {
     @Test
     fun `Test Correct Parsing of Function Definition`() {
         val text = """
-            :(a,b) => {
+            :(Int a, b = 10) => {
                 let c = 5
             }
         """.trimIndent()
@@ -94,12 +94,55 @@ class ParserTests {
         assertEquals(RootNode().apply {
             addChild(
                     FunctionNode(
-                            ParameterNode().apply {
-                                addChild(IdentifierNode("a"))
-                                addChild(IdentifierNode("b"))
+                            TypedParameterNode().apply {
+                                addChild(TypedIdentifierNode("a", null, "Int"))
+                                addChild(TypedIdentifierNode("b", NumberNode(10), null))
                             },
                             ScopeNode().apply {
                                 addChild(DeclarationNode("c", false, NumberNode(5)))
+                            }
+                    )
+            )
+        }, ast)
+    }
+
+    @Test
+    fun `Test Correct Parsing of Struct`() {
+        val text = """
+            struct Human {
+                Int age = 18
+                height = 177
+                Int speed = 5
+            }
+        """.trimIndent()
+        val tokens = lexer.lex(text)
+        val ast = ElaraParser(tokens).parse()
+        print(ast)
+        assertEquals(RootNode().apply {
+            addChild(
+                    StructNode(
+                            "Human",
+                            TypedParameterNode().apply {
+                                addChild(
+                                        TypedIdentifierNode(
+                                                "age",
+                                                NumberNode(18),
+                                                "Int"
+                                        )
+                                )
+                                addChild(
+                                        TypedIdentifierNode(
+                                                "height",
+                                                NumberNode(177)
+                                        )
+                                )
+                                addChild(
+                                        TypedIdentifierNode(
+                                                "speed",
+                                                NumberNode(5),
+                                                "Int"
+                                        )
+                                )
                             }
                     )
             )

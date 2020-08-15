@@ -76,6 +76,9 @@ class ElaraParser(tokenList: List<Token>) {
                 TokenType.COLON -> {
                     parseFunction()
                 }
+                TokenType.STRUCT -> {
+                    parseStruct()
+                }
                 TokenType.NEWLINE -> {
                     parseExpression(endTokens = endTokens)
                 }
@@ -149,11 +152,62 @@ class ElaraParser(tokenList: List<Token>) {
     private fun parseFunction(): FunctionNode {
         val lToken = tokens.pop()
         if (lToken.type != TokenType.LPAREN) invalidSyntax("Parameter not specified for function definition")
-        val params = parseParams(TokenType.COMMA, TokenType.RPAREN)
+        val params = parseTypedParams(TokenType.RPAREN, TokenType.COMMA)
         val arrow = tokens.pop()
         if (arrow.type != TokenType.ARROW) invalidSyntax("Function execution not defined! Expected ARROW got ${arrow.type}")
         val expression = parseExpression() ?: invalidSyntax("Function not defined properly!")
         return FunctionNode(params, expression)
+    }
+
+    private fun parseStruct(): StructNode {
+        if (tokens.size < 3) invalidSyntax("Incomplete struct definition")
+        val id = tokens.pop();
+        if (id.type != TokenType.IDENTIFIER)
+            invalidSyntax("Identifier not specified for struct declaration")
+        if (tokens.pop().type != TokenType.LBRACE) invalidSyntax("Struct definition not specified")
+
+        val typedParams = parseTypedParams(TokenType.RBRACE)
+        return StructNode(id.text, typedParams)
+    }
+
+    private fun parseTypedParams(closingType: TokenType, separator: TokenType? = null): TypedParameterNode {
+        val typedParams = TypedParameterNode()
+        cleanNewLines()
+        while (tokens.peek().type != closingType) {
+            val typedIdentifier = parseTypedIdentifier(closingType)
+            cleanNewLines()
+            if (separator != null && tokens.peek().type !in setOf(separator, closingType)) invalidSyntax("Invalid separator in Typed parameter!")
+            if (tokens.peek().type == separator)tokens.pop()
+            typedParams.addChild(typedIdentifier)
+        }
+        tokens.pop()
+        return typedParams
+    }
+
+
+    private fun parseTypedIdentifier(endType: TokenType): TypedIdentifierNode {
+        if (tokens.size < 2) invalidSyntax("Incomplete Typed Identifier")
+        val left = tokens.pop()
+        val right = tokens.pop()
+        if (left.type != TokenType.IDENTIFIER) invalidSyntax("Invalid syntax at Typed Identifier expression")
+
+        return when (right.type) {
+            TokenType.IDENTIFIER -> {
+                if (tokens.peek().type == TokenType.DEF) {
+                    tokens.pop()
+                    val expr = parseExpression(endTokens = setOf(TokenType.NEWLINE, endType)) ?: invalidSyntax("Invalid default value for parameter -> ${right.text}")
+
+                    TypedIdentifierNode(right.text, expr, left.text)
+                } else {
+                    TypedIdentifierNode(right.text, null, left.text)
+                }
+            }
+            TokenType.DEF -> {
+                val expr = parseExpression(endTokens = setOf(TokenType.NEWLINE, endType)) ?: invalidSyntax("Invalid default value for parameter -> ${right.text}")
+                return TypedIdentifierNode(left.text, expr)
+            }
+            else -> invalidSyntax("Invalid syntax at Typed Identifier expression")
+        }
     }
 
     private fun parseDeclaration(): DeclarationNode {
@@ -184,6 +238,10 @@ class ElaraParser(tokenList: List<Token>) {
     private fun parseAssignment(lastToken: Token): AssignmentNode {
         val value = parseExpression() ?: invalidSyntax("Value expected for assignment")
         return AssignmentNode(lastToken.text, value)
+    }
+
+    private fun cleanNewLines() {
+        while ( !tokens.empty() && tokens.peek().type == TokenType.NEWLINE) tokens.pop()
     }
 }
 

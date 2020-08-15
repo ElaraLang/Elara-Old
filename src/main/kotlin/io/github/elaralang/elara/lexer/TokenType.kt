@@ -31,7 +31,7 @@ enum class TokenType(val regex: Regex) {
     COLON(":".toRegex()),
     SLASH("/".toRegex()),
 
-    IDENTIFIER("[^,\"\\s)(]+".toRegex()); //this has the potential to get *very* messy...
+    IDENTIFIER("[^,{}\\[\\]\"\\s)(]+".toRegex()); //this has the potential to get *very* messy...
 
     companion object {
         // Creating regex to capture tokens

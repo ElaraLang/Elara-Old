@@ -33,21 +33,27 @@ class RootNode : ASTNode() {
         return "RootNode(children=$children)"
     }
 }
-
-data class DeclarationNode(val identifier: String, val mutable: Boolean, val value: ASTNode) : ASTNode()
-data class AssignmentNode(val identifier: String, val value: ASTNode) : ASTNode()
-data class NumberNode(val number: Long) : ASTNode()
-data class StringNode(val data: String) : ASTNode()
-data class FunctionNode(val parameters: ParameterNode, val definition: ASTNode): ASTNode()
-data class IdentifierNode(val identifier: String) : ASTNode()
-class ParameterNode: ASTNode() {
-    override fun toString(): String {
-        return "ParameterNode(children=$children)"
-    }
-}
-data class FunctionCallNode(val identifier: String, val parameters: ParameterNode): ASTNode()
 class ScopeNode: ASTNode() {
     override fun toString(): String {
         return "ScopeNode(children=$children)"
     }
 }
+class ParameterNode: ASTNode() {
+    override fun toString(): String {
+        return "ParameterNode(children=$children)"
+    }
+}
+class TypedParameterNode: ASTNode() {
+    override fun toString(): String {
+        return "TypedParameterNode(children=$children)"
+    }
+}
+data class DeclarationNode(val identifier: String, val mutable: Boolean, val value: ASTNode) : ASTNode()
+data class AssignmentNode(val identifier: String, val value: ASTNode) : ASTNode()
+data class NumberNode(val number: Long) : ASTNode()
+data class StringNode(val data: String) : ASTNode()
+data class FunctionNode(val parameters: TypedParameterNode, val definition: ASTNode): ASTNode()
+data class IdentifierNode(val identifier: String) : ASTNode()
+data class FunctionCallNode(val identifier: String, val parameters: ParameterNode): ASTNode()
+data class TypedIdentifierNode(val identifier: String, val value: ASTNode? = null,val type: String? = null): ASTNode()
+data class StructNode(val identifier: String, val typedParams: TypedParameterNode): ASTNode()
