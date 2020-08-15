@@ -39,58 +39,68 @@ class ElaraParser(tokenList: List<Token>) {
         val currentToken = tokens.pop()
         if (endTokens != null && currentToken.type in endTokens) {
             tokens.add(currentToken)
-            if (lastToken != null)
-                return parseToken(lastToken) ?: invalidSyntax("Invalid Expression!")
-            else
-                invalidSyntax("Expression not found!")
+            return lastToken?.let { parseToken(it) ?: invalidSyntax("Invalid Expression!") }
         }
+
         if (lastToken == null) {
             //No prior context
 
-            when (currentToken.type) {
+            return when (currentToken.type) {
                 // let test = <expression>
                 TokenType.LET -> {
-                    return parseDeclaration()
+                    parseDeclaration()
                 }
                 // ambiguous => requires next Token for context
                 TokenType.IDENTIFIER -> {
-                    return parseExpression(currentToken, endTokens)
+                    parseExpression(currentToken, endTokens)
                 }
                 TokenType.NUMBER -> {
-                    return NumberNode(currentToken.text.toLong())
+                    NumberNode(currentToken.text.toLong())
                 }
-                else -> return null
+                TokenType.LBRACE -> {
+                    parseScope()
+                }
+                TokenType.COLON -> {
+                    parseFunction()
+                }
+                TokenType.NEWLINE -> {
+                    parseExpression(endTokens =  endTokens)
+                }
+                else -> null
             }
 
         } else {
             // Check last context
 
-            when (lastToken.type) {
+            return when (lastToken.type) {
                 TokenType.IDENTIFIER -> {
                     when (currentToken.type) {
                         TokenType.LPAREN -> {
-                            return parseFunctionCall(lastToken, TokenType.COMMA, TokenType.RPAREN)
+                            parseFunctionCall(lastToken, TokenType.COMMA, TokenType.RPAREN)
                         }
                         TokenType.DEF -> {
-                            return parseAssignment(lastToken)
+                            parseAssignment(lastToken)
                         }
-                        else -> return null
+                        TokenType.NEWLINE -> {
+                            parseToken(lastToken)
+                        }
+                        else -> null
                     }
                 }
-                else -> return null
+                else -> null
             }
         }
     }
 
-    private fun parseAssignment(lastToken: Token): AssignmentNode {
-        val value = parseExpression() ?: invalidSyntax("Value expected for assignment")
-        return AssignmentNode(lastToken.text, value)
-    }
-
-
-    private fun parseFunctionCall(identifier: Token, separator: TokenType, endtype: TokenType): FunctionCallNode {
-        val params = parseParams(separator, endtype)
-        return FunctionCallNode(identifier.text, params)
+    private fun parseScope(): ASTNode {
+        val scope = ScopeNode()
+        while (tokens.peek().type != TokenType.RBRACE) {
+            val expression = parseExpression(endTokens = setOf(TokenType.RBRACE))
+            if (expression != null)
+                scope.addChild(expression)
+        }
+        tokens.pop()
+        return scope
     }
 
     private fun parseParams(separator: TokenType?, endType: TokenType): ParameterNode {
@@ -106,7 +116,23 @@ class ElaraParser(tokenList: List<Token>) {
                 if (tokens.peek().type == separator) tokens.pop()
             }
         }
+        tokens.pop()
         return paramNode
+    }
+
+    private fun parseFunctionCall(identifier: Token, separator: TokenType, endtype: TokenType): FunctionCallNode {
+        val params = parseParams(separator, endtype)
+        return FunctionCallNode(identifier.text, params)
+    }
+
+    private fun parseFunction(): FunctionNode {
+        val lToken = tokens.pop()
+        if (lToken.type != TokenType.LPAREN) invalidSyntax("Parameter not specified for function definition")
+        val params = parseParams(TokenType.COMMA, TokenType.RPAREN)
+        val arrow = tokens.pop()
+        if (arrow.type != TokenType.ARROW) invalidSyntax("Function execution not defined!")
+        val expression = parseExpression() ?: invalidSyntax("Function not defined properly!")
+        return FunctionNode(params, expression)
     }
 
     private fun parseDeclaration(): DeclarationNode {
@@ -132,6 +158,11 @@ class ElaraParser(tokenList: List<Token>) {
 
         val value = parseExpression() ?: invalidSyntax("Could not find expression to assign to ${id.text}")
         return DeclarationNode(id.text, mutable, value)
+    }
+
+    private fun parseAssignment(lastToken: Token): AssignmentNode {
+        val value = parseExpression() ?: invalidSyntax("Value expected for assignment")
+        return AssignmentNode(lastToken.text, value)
     }
 }
 

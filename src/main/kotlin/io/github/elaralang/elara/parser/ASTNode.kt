@@ -1,5 +1,7 @@
 package io.github.elaralang.elara.parser
 
+import java.lang.instrument.ClassDefinition
+
 sealed class ASTNode {
     protected val children = mutableListOf<ASTNode>()
 
@@ -36,6 +38,7 @@ data class DeclarationNode(val identifier: String, val mutable: Boolean, val val
 data class AssignmentNode(val identifier: String, val value: ASTNode) : ASTNode()
 data class NumberNode(val number: Long) : ASTNode()
 data class StringNode(val data: String) : ASTNode()
+data class FunctionNode(val parameters: ParameterNode, val definition: ASTNode): ASTNode()
 data class IdentifierNode(val identifier: String) : ASTNode()
 class ParameterNode: ASTNode() {
     override fun toString(): String {
@@ -43,4 +46,8 @@ class ParameterNode: ASTNode() {
     }
 }
 data class FunctionCallNode(val identifier: String, val parameters: ParameterNode): ASTNode()
-
+class ScopeNode: ASTNode() {
+    override fun toString(): String {
+        return "ScopeNode(children=$children)"
+    }
+}

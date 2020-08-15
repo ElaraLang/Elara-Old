@@ -46,7 +46,7 @@ class ParserTests {
         """.trimIndent()
         val tokens = lexer.lex(text)
         val ast = ElaraParser(tokens).parse()
-
+        print(ast)
         assertEquals(RootNode().apply {
             addChild(
                     FunctionCallNode(
@@ -55,6 +55,30 @@ class ParserTests {
                                 addChild(IdentifierNode("param1"))
                                 addChild(NumberNode(123))
                                 addChild(IdentifierNode("param3"))
+                            }
+                    )
+            )
+        }, ast)
+    }
+    @Test
+    fun `Test Correct Parsing of Function Definition`() {
+        val text = """
+            :(a,b) => {
+                let c = 5
+            }
+        """.trimIndent()
+        val tokens = lexer.lex(text)
+        val ast = ElaraParser(tokens).parse()
+        print(ast)
+        assertEquals(RootNode().apply {
+            addChild(
+                    FunctionNode(
+                            ParameterNode().apply {
+                                addChild(IdentifierNode("a"))
+                                addChild(IdentifierNode("b"))
+                            },
+                            ScopeNode().apply {
+                                addChild(DeclarationNode("c", false, NumberNode(5)))
                             }
                     )
             )
