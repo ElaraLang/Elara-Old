@@ -9,8 +9,8 @@ enum class TokenType(val regex: Regex) {
     RPAREN("\\)".toRegex()),
     LBRACE("\\{".toRegex()),
     RBRACE("}".toRegex()),
-    LTRIANGLE("<".toRegex()),
-    RTRIANGLE(">".toRegex()),
+    //LTRIANGLE("<".toRegex()),
+    //RTRIANGLE(">".toRegex()),
 
     LET("let".toRegex()),
     EXTEND("extend".toRegex()),
@@ -19,9 +19,10 @@ enum class TokenType(val regex: Regex) {
     STRUCT("struct".toRegex()),
     NAMESPACE("namespace".toRegex()),
     IMPORT("import".toRegex()),
+    IF("if".toRegex()),
 
-    EQUAL("==(?!>)".toRegex()),
-    DEF("=(?!>)".toRegex()),
+    //EQUAL("==(?!>)".toRegex()),
+    DEF("=(?![>=])".toRegex()),
     ARROW("=>".toRegex()),
 
     DOT("\\.".toRegex()),

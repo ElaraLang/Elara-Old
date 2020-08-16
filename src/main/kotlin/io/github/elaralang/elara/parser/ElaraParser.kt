@@ -249,17 +249,7 @@ class ElaraParser(tokenList: List<Token>) {
     }
 
     private fun cleanNewLines() {
-        while ( !tokens.empty() && tokens.peek().type == TokenType.NEWLINE) tokens.pop()
+        while (!tokens.empty() && tokens.peek().type == TokenType.NEWLINE) tokens.pop()
     }
 
-}
-
-fun main() {
-    val text = """
-            test.test
-        """.trimIndent()
-    val tokens = ElaraLexer().lex(text)
-    println(tokens)
-    val ast = ElaraParser(tokens).parse()
-    println(ast)
 }
