@@ -4,7 +4,7 @@ import java.beans.Expression
 import java.lang.instrument.ClassDefinition
 
 sealed class ASTNode {
-    protected val children = mutableListOf<ASTNode>()
+    val children = mutableListOf<ASTNode>()
 
     fun addChild(node: ASTNode) {
         children.add(node)
@@ -26,7 +26,6 @@ sealed class ASTNode {
     override fun hashCode(): Int {
         return children.hashCode()
     }
-
 }
 
 class RootNode : ASTNode() {
@@ -58,5 +57,15 @@ data class IdentifierNode(val identifier: String) : ASTNode()
 data class FunctionCallNode(val identifier: String, val parameters: ParameterNode): ASTNode()
 data class TypedIdentifierNode(val identifier: String, val value: ASTNode? = null,val type: String? = null): ASTNode()
 data class StructNode(val identifier: String, val typedParams: TypedParameterNode): ASTNode()
-data class ContextNode(val contextIdentifier: String, val expression: ASTNode): ASTNode()
+data class ContextNode(val contextIdentifier: String): ASTNode() {
+    override fun toString(): String {
+        return "ContextNode(context=${contextIdentifier},children=$children)"
+    }
+}
+//---- test rewrite
+class ExpressionNode: ASTNode(){
+    override fun toString(): String {
+        return "ExpressionNode(children=$children)"
+    }
+}
 

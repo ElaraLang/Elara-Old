@@ -28,7 +28,7 @@ enum class TokenType(val regex: Regex) {
     DOT("\\.".toRegex()),
 
     STRING("\".*\"".toRegex()),
-    NUMBER("[0-9.+]+".toRegex()),
+    NUMBER("[+-]?[0-9]+(\\.[0-9]+)?".toRegex()),
 
     COMMA(",".toRegex()),
     COLON(":".toRegex()),

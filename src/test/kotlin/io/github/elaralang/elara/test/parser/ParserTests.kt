@@ -161,9 +161,8 @@ class ParserTests {
         assertEquals(RootNode().apply {
             addChild(
                     ContextNode(
-                            "someStructInstance",
-                            IdentifierNode("someField")
-                    )
+                            "someStructInstance"
+                    ).apply { addChild(IdentifierNode("someField")) }
             )
         }, ast)
     }
@@ -179,9 +178,10 @@ class ParserTests {
         assertEquals(RootNode().apply {
             addChild(
                     ContextNode(
-                            "someStructInstance",
-                            AssignmentNode("someField", NumberNode(5))
-                    )
+                            "someStructInstance"
+                    ).apply {
+                        addChild(AssignmentNode("someField", NumberNode(5)))
+                    }
             )
         }, ast)
     }
@@ -196,16 +196,19 @@ class ParserTests {
         assertEquals(RootNode().apply {
             addChild(
                     ContextNode(
-                            "someStructInstance",
-                            FunctionCallNode(
-                                    "someFunction",
-                                    ParameterNode().apply {
-                                        addChild(
-                                                NumberNode(15)
-                                        )
-                                    }
-                            )
-                    )
+                            "someStructInstance"
+                    ).apply {
+                        addChild(
+                                FunctionCallNode(
+                                        "someFunction",
+                                        ParameterNode().apply {
+                                            addChild(
+                                                    NumberNode(15)
+                                            )
+                                        }
+                                )
+                        )
+                    }
             )
         }, ast)
     }

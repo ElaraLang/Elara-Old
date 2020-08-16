@@ -53,6 +53,9 @@ class ElaraParser(tokenList: List<Token>) {
 
             return when (currentToken.type) {
                 // let test = <expression>
+                TokenType.LPAREN -> {
+                    parseExpression(endTokens = setOf(TokenType.RPAREN))
+                }
                 TokenType.LET -> {
                     parseDeclaration()
                 }
@@ -91,7 +94,7 @@ class ElaraParser(tokenList: List<Token>) {
                 TokenType.IDENTIFIER -> {
                     when (currentToken.type) {
                         TokenType.LPAREN -> {
-                            parseFunctionCall(lastToken, TokenType.COMMA, TokenType.RPAREN)
+                            parseFunctionCall(lastToken, TokenType.COMMA, setOf(TokenType.RPAREN))
                         }
                         TokenType.DEF -> {
                             parseAssignment(lastToken)
@@ -107,7 +110,9 @@ class ElaraParser(tokenList: List<Token>) {
                                 invalidSyntax("Unexpected token $currentToken")
                             }
                             tokens.push(currentToken)
-                            parseFunctionCall(lastToken, null, TokenType.NEWLINE)
+                            val closers = mutableSetOf(TokenType.NEWLINE)
+                            if (endTokens != null) closers.addAll(endTokens)
+                            parseFunctionCall(lastToken, null, closers)
                         }
                     }
                 }
@@ -127,15 +132,14 @@ class ElaraParser(tokenList: List<Token>) {
         return scope
     }
 
-    private fun parseParams(separator: TokenType?, endType: TokenType): ParameterNode {
+    private fun parseParams(separator: TokenType?, endType: Set<out TokenType>): ParameterNode {
         val paramNode = ParameterNode()
-        val paramClosers = mutableSetOf(endType)
+        val paramClosers = endType.toMutableSet()
         if (separator != null) paramClosers.add(separator)
-        val endTypes = setOf(TokenType.EOF, endType)
+        val endTypes = setOf(TokenType.EOF, *endType.toTypedArray())
         while (tokens.isNotEmpty() && tokens.peek().type !in endTypes) {
             val token = tokens.peek()
-            val param =
-                parseExpression(null, paramClosers, true) ?: invalidSyntax("Unexpected token in function call $token")
+            val param = parseExpression(null, paramClosers, true) ?: invalidSyntax("Unexpected token in function call $token")
 
             paramNode.addChild(param)
             if (separator != null) {
@@ -147,7 +151,7 @@ class ElaraParser(tokenList: List<Token>) {
         return paramNode
     }
 
-    private fun parseFunctionCall(identifier: Token, separator: TokenType?, endType: TokenType): FunctionCallNode {
+    private fun parseFunctionCall(identifier: Token, separator: TokenType?,endType: Set<TokenType>): FunctionCallNode {
         val params = parseParams(separator, endType)
         return FunctionCallNode(identifier.text, params)
     }
@@ -240,7 +244,9 @@ class ElaraParser(tokenList: List<Token>) {
     private fun parseContextExpression(identifier: Token): ContextNode {
         val expression = parseExpression() ?: invalidSyntax("Invalid expression provided for scope ${identifier.text}")
         if (expression is ScopeNode) invalidSyntax("Scope cannot be created in a contextual call!")
-        return ContextNode(identifier.text, expression)
+        return ContextNode(identifier.text).apply {
+            addChild(expression)
+        }
     }
 
     private fun parseAssignment(lastToken: Token): AssignmentNode {
@@ -251,5 +257,6 @@ class ElaraParser(tokenList: List<Token>) {
     private fun cleanNewLines() {
         while (!tokens.empty() && tokens.peek().type == TokenType.NEWLINE) tokens.pop()
     }
+
 
 }
