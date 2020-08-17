@@ -231,7 +231,15 @@ class ElaraParser(tokenList: List<Token>) {
         openingToken?.expect()
 
         while (tokens.peek().type != closingToken) {
-            val expr = parseTokenLimited(closingToken,TokenType.EOF, *separator) ?: break
+            val curToken = tokens.pop()
+            val expr = if (TokenType.DEF.tryPop(false)) {
+                if (curToken.type != TokenType.IDENTIFIER) invalidSyntax("Excepted identifier at $curToken for named parameter")
+                val value  = parseTokenLimited(closingToken,TokenType.EOF, *separator) ?: break
+                NamedParamNode(curToken.text, value)
+            } else {
+                tokens.push(curToken)
+                parseTokenLimited(closingToken,TokenType.EOF, *separator) ?: break
+            }
             params.addChild(expr)
             if (tokens.peek().type != closingToken && tokens.peek().type != TokenType.EOF && separator.isNotEmpty()) separator[0].expect()
         }
@@ -276,9 +284,9 @@ class ElaraParser(tokenList: List<Token>) {
         if (token.type != this && token.type != TokenType.EOF) invalidSyntax("Expected token of type $this")
         return token
     }
-    private fun TokenType.tryPop(): Boolean {
-        cleanTopOfStack()
-        return if (tokens.peek().type == this) {
+    private fun TokenType.tryPop(cleanTop: Boolean = true): Boolean {
+        if (cleanTop) cleanTopOfStack()
+        return if (tokens.isNotEmpty() && tokens.peek().type == this) {
             tokens.pop()
             true
         } else false

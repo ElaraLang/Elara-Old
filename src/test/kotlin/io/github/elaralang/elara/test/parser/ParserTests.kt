@@ -83,6 +83,51 @@ class ParserTests {
             )
         }, ast)
     }
+
+
+    @Test
+    fun `Test Correct Parsing of Function Call with Named Parameters`() {
+        val text = """
+            someFunction(a = param1, b = 123, c = param3)
+        """.trimIndent()
+        val tokens = lexer.lex(text)
+        val ast = ElaraParser(tokens).parse()
+        print(ast)
+        assertEquals(RootNode().apply {
+            addChild(
+                    ExpressionNode().apply {
+                        addChild(
+                                FunctionCallNode(
+                                        "someFunction",
+                                        ParameterNode().apply {
+                                            addChild(
+                                                    NamedParamNode(
+                                                            "a",
+                                                        IdentifierNode("param1")
+                                                    )
+                                            )
+                                            addChild(
+                                                    NamedParamNode(
+                                                            "b",
+                                                        NumberNode(123)
+                                                    )
+                                            )
+                                            addChild(
+                                                    NamedParamNode(
+                                                            "c",
+                                                        IdentifierNode("param3")
+                                                    )
+                                            )
+                                        }
+                                )
+                        )
+                    }
+            )
+        }, ast)
+    }
+
+
+
     @Test
     fun `Test Correct Parsing of Function Call Without Parentheses`() {
         val text = """
