@@ -1,9 +1,11 @@
 package io.github.elaralang.elara.parser
 
 import io.github.elaralang.elara.exceptions.invalidSyntax
+import io.github.elaralang.elara.lexer.ElaraLexer
 import io.github.elaralang.elara.lexer.Token
 import io.github.elaralang.elara.lexer.TokenType
 import java.util.*
+import kotlin.coroutines.Continuation
 
 class ElaraParser(tokenList: List<Token>) {
     companion object {
@@ -73,19 +75,60 @@ class ElaraParser(tokenList: List<Token>) {
             TokenType.IDENTIFIER -> parseInfixFunctionCall(lastToken.text, tokens.pop().text,)
             TokenType.LPAREN -> parseFunctionCall(lastToken.text)
             TokenType.DEF -> parseAssignment(lastToken.text, *closingType)
+            TokenType.OPERATOR -> if (lastToken != continuation) IdentifierNode(lastToken.text) else parseOperation(false, *closingType)
             else -> invalidSyntax("Unexpected token : ${tokens.peek().text}")
         }
     }
 
+    private fun parseOperation(start: Boolean = false, vararg closingType: TokenType): ArithmeticNode {
+        val arithmetic = ArithmeticNode()
+        var lastExpr: ArithTermNode = if (start) parseArithmeticExpr(false, *closingType) else LastArithTermNode()
+        while (tokens.isNotEmpty() && tokens.peek().type == TokenType.OPERATOR && tokens.peek().type !in closingType) {
+            val op = TokenType.OPERATOR.expect()
+            when (op.text) {
+                "+" -> {
+                    arithmetic.addChild(lastExpr)
+                    lastExpr = parseArithmeticExpr(false, TokenType.OPERATOR, *closingType)
+                }
+                "-" -> {
+                    arithmetic.addChild(lastExpr)
+                    lastExpr = parseArithmeticExpr(true, TokenType.OPERATOR, *closingType)
+                }
+                "*" -> {
+                    lastExpr.multiply(parseTillOperation(TokenType.OPERATOR, *closingType))
+                }
+                "/" -> {
+                    lastExpr.divide(parseTillOperation(TokenType.OPERATOR, *closingType))
+                }
+                "%" -> {
+                    lastExpr.reminder(parseTillOperation(TokenType.OPERATOR, *closingType))
+                }
+                else -> invalidSyntax("UNDECLARED OPERATOR TYPE FOUND")
+            }
+        }
+        arithmetic.addChild(lastExpr)
+        return arithmetic
+    }
+    private fun parseArithmeticExpr(negative: Boolean = false, vararg closingToken: TokenType): ArithTermNode {
+
+        return ArithTermNode(negative).apply {
+            addChild(parseTillOperation(*closingToken))
+        }
+    }
+    private fun parseTillOperation(vararg tokenType: TokenType): ASTNode {
+        return parseTokenLimited(*tokenType) ?: invalidSyntax("Arithmetic ended unexpectedly")
+    }
     private fun parseTokenLimited(vararg closingType: TokenType): ASTNode? {
         return when (tokens.peek().type) {
             in closingType -> null
             TokenType.NUMBER -> NumberNode(tokens.pop().text.toLong())
             TokenType.STRING -> StringNode(tokens.pop().text)
             TokenType.IDENTIFIER -> parseTokenLimitedWithLookAhead(tokens.pop(), *closingType)
+            TokenType.LPAREN -> if (closingType.any { it == TokenType.OPERATOR }) parseParenthesisExpression() else invalidSyntax("Unexpected token in context : ${tokens.peek().text} of type ${tokens.peek().type}")
             else -> invalidSyntax("Unexpected token in context : ${tokens.peek().text} of type ${tokens.peek().type}")
         }
     }
+
     private fun parseTokenLimitedWithLookAhead(lastToken: Token, vararg closingType: TokenType): ASTNode? {
         return when (tokens.peek().type) {
             in closingType -> IdentifierNode(lastToken.text)

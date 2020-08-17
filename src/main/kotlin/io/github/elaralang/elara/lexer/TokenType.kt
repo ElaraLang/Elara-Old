@@ -22,7 +22,11 @@ enum class TokenType(val regex: String) {
     IF("if"),
     ELSE("else"),
 
-    //EQUAL("==(?!>)"),
+    OPERATOR("[+\\-*/%]"),
+    AND("&&"),
+    OR("\\|\\|"),
+    XOR("\\^"),
+    EQUALS("==(?!>)"),
     DEF("=(?![>=])"),
     ARROW("=>"),
 

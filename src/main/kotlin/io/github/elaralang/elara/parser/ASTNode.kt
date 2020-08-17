@@ -48,6 +48,34 @@ class TypedParameterNode: ASTNode() {
         return "TypedParameterNode(children=$children)"
     }
 }
+class ArithmeticNode: ASTNode() {
+    override fun toString(): String {
+        return "ArithmeticNode(children=$children)"
+    }
+}
+open class ArithTermNode(val negative: Boolean = false): ASTNode() {
+    override fun toString(): String {
+        return "ArithmeticTerm(${if (negative) "negative" else "positive"}, operations=$children)"
+    }
+    fun multiply(expr: ASTNode) {
+        addChild(MultiplicationNode(expr))
+    }
+    fun divide(expr: ASTNode) {
+        addChild(DivisionNode(expr))
+    }
+    fun reminder(expr: ASTNode) {
+        addChild(ReminderNode(expr))
+    }
+}
+class LastArithTermNode: ArithTermNode() {
+    override fun toString(): String {
+        return "Term(refers to last expression,  operations=$children)"
+    }
+}
+data class MultiplicationNode(val value: ASTNode): ASTNode()
+data class DivisionNode(val value: ASTNode): ASTNode()
+data class ReminderNode(val value: ASTNode): ASTNode()
+
 data class DeclarationNode(val identifier: String, val mutable: Boolean, val value: ASTNode) : ASTNode()
 data class AssignmentNode(val identifier: String, val value: ASTNode) : ASTNode()
 data class NumberNode(val number: Long) : ASTNode()

@@ -48,8 +48,8 @@ class LexerTests {
 
         val expectedTokenStream = listOf(
             LET, IDENTIFIER, DEF, LPAREN, IDENTIFIER, IDENTIFIER, RPAREN, ARROW, LBRACE, NEWLINE,
-            IF, IDENTIFIER, IDENTIFIER, NUMBER, ARROW, RETURN, NUMBER, NEWLINE,
-            RETURN, IDENTIFIER, LPAREN, IDENTIFIER, IDENTIFIER, NUMBER, RPAREN, NEWLINE,
+            IF, IDENTIFIER, EQUALS, NUMBER, ARROW, RETURN, NUMBER, NEWLINE,
+            RETURN, IDENTIFIER, LPAREN, IDENTIFIER, OPERATOR, NUMBER, RPAREN, NEWLINE,
             RBRACE, EOF
         )
 
@@ -70,7 +70,7 @@ class LexerTests {
 
         val expectedTokenStream = listOf (
             EXTEND, IDENTIFIER, LBRACE, NEWLINE,
-            LET, IDENTIFIER, DEF, LPAREN, IDENTIFIER, IDENTIFIER, RPAREN, ARROW, IDENTIFIER, IDENTIFIER, IDENTIFIER, IDENTIFIER, NUMBER, NEWLINE,
+            LET, IDENTIFIER, DEF, LPAREN, IDENTIFIER, IDENTIFIER, RPAREN, ARROW, IDENTIFIER, IDENTIFIER, IDENTIFIER, EQUALS, NUMBER, NEWLINE,
             RBRACE, EOF
         )
 
@@ -89,5 +89,6 @@ class LexerTests {
         )
         assertEquals(expectedTokenStream, ElaraLexer().lex(testInput).map { it.type })
     }
+
 
 }

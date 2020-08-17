@@ -258,6 +258,8 @@ class ParserTests {
                     }
             )
         }, ast)
+
+        val a = 5+6.toLong()
     }
 
     @Test
@@ -525,6 +527,72 @@ class ParserTests {
                                             )
                                     )
                                 }
+                        )
+                    }
+            )
+        }, ast)
+    }
+
+
+
+    @Test
+    fun `Test Correct Parsing of Arithmetic Operations`() {
+        val text = """
+            let expr = (a + b + c) + b * c + a + (b * c)
+        """.trimIndent()
+        val tokens = lexer.lex(text)
+        val ast = ElaraParser(tokens).parse()
+        print(ast)
+        assertEquals(RootNode().apply {
+            addChild(
+                    ExpressionNode().apply {
+                        addChild(
+                                DeclarationNode(
+                                        "expr",
+                                        false,
+                                        ExpressionNode().apply {
+                                            addChild(
+                                                ExpressionNode().apply {
+                                                    addChild(IdentifierNode("a"))
+                                                    addChild(
+                                                            ArithmeticNode().apply {
+                                                                addChild(LastArithTermNode())
+                                                                addChild(ArithTermNode(false).apply {
+                                                                    addChild(IdentifierNode("b"))
+                                                                })
+                                                                addChild(ArithTermNode(false).apply {
+                                                                    addChild(IdentifierNode("c"))
+                                                                })
+                                                            }
+                                                    )
+                                                })
+                                                    addChild(
+                                                            ArithmeticNode().apply {
+                                                                addChild(LastArithTermNode())
+                                                                addChild(ArithTermNode(false).apply {
+                                                                    addChild(IdentifierNode("b"))
+                                                                    addChild(MultiplicationNode(IdentifierNode("c")))
+                                                                })
+                                                                addChild(ArithTermNode(false).apply {
+                                                                    addChild(IdentifierNode("a"))
+                                                                })
+                                                                addChild(ArithTermNode(false).apply {
+                                                                    addChild(ExpressionNode().apply {
+                                                                        addChild(IdentifierNode("b"))
+                                                                        addChild(ArithmeticNode().apply {
+                                                                            addChild(LastArithTermNode().apply {
+                                                                                addChild(MultiplicationNode(IdentifierNode("c")))
+                                                                            })
+                                                                        })
+
+                                                                    })
+                                                                })
+                                                            }
+                                                    )
+
+
+                                        }
+                                )
                         )
                     }
             )
