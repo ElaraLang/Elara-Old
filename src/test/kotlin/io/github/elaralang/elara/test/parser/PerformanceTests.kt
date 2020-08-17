@@ -12,17 +12,17 @@ class PerformanceTests {
     @Test
     fun `Test Parser Performance Small`() {
         checkParseTimeBound(
-                """
+            """
             let a = 3
         """.trimIndent(),
-                15
+            15
         )
     }
 
     @Test
     fun `Test Lexer Performance Medium`() {
         checkParseTimeBound(
-                """
+            """
             let a = functionCall(test,123,a())
             let p = :(String txt) => this print txt
             p("Testing Medium input")
@@ -30,14 +30,14 @@ class PerformanceTests {
                 String name
             }
         """.trimIndent(),
-                20
+            20
         )
     }
 
     @Test
     fun `Test Lexer Performance Large`() {
         checkParseTimeBound(
-                """
+            """
             let a = 5
             let b = 45
             let addTest = :(Int a, Int b) => a + b
@@ -48,14 +48,14 @@ class PerformanceTests {
             this print multiplyTest(a, b)
             let divideTest = :(Int a, Int b) => a * b
             this print divideTest(a,b)
-        """.trimIndent(), 25)
+        """.trimIndent(), 25
+        )
     }
-
 
 
     private fun checkParseTimeBound(snippet: String, upperBound: Int) {
         val lexOutput = ElaraLexer().lex(snippet)
-        val timeTaken = measureTimeMillis {ElaraParser(lexOutput).parse() }
+        val timeTaken = measureTimeMillis { ElaraParser(lexOutput).parse() }
         println("Completed parsing input in $timeTaken ms")
         assert(timeTaken < upperBound)
     }
