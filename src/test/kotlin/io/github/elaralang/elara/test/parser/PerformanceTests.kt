@@ -11,34 +11,33 @@ class PerformanceTests {
 
     @Test
     fun `Test Parser Performance Small`() {
-        val text = """
+        checkParseTimeBound(
+                """
             let a = 3
-        """.trimIndent()
-        val lexOutput = ElaraLexer().lex(text)
-        val timeTaken = measureTimeMillis {ElaraParser(lexOutput).parse() }
-        println("Completed parsing in $timeTaken ms")
-        assert(timeTaken < 15)
+        """.trimIndent(),
+                15
+        )
     }
 
     @Test
     fun `Test Lexer Performance Medium`() {
-        val text = """
+        checkParseTimeBound(
+                """
             let a = functionCall(test,123,a())
             let p = :(String txt) => this print txt
             p("Testing Medium input")
             struct Human {
                 String name
             }
-        """.trimIndent()
-        val lexOutput = ElaraLexer().lex(text)
-        val timeTaken = measureTimeMillis {ElaraParser(lexOutput).parse() }
-        println("Completed parsing Medium input in $timeTaken ms")
-        assert(timeTaken < 20)
+        """.trimIndent(),
+                20
+        )
     }
 
     @Test
     fun `Test Lexer Performance Large`() {
-        val text = """
+        checkParseTimeBound(
+                """
             let a = 5
             let b = 45
             let addTest = :(Int a, Int b) => a + b
@@ -49,10 +48,15 @@ class PerformanceTests {
             this print multiplyTest(a, b)
             let divideTest = :(Int a, Int b) => a * b
             this print divideTest(a,b)
-        """.trimIndent()
-        val lexOutput = ElaraLexer().lex(text)
+        """.trimIndent(), 25)
+    }
+
+
+
+    private fun checkParseTimeBound(snippet: String, upperBound: Int) {
+        val lexOutput = ElaraLexer().lex(snippet)
         val timeTaken = measureTimeMillis {ElaraParser(lexOutput).parse() }
-        println("Completed parsing Large input in $timeTaken ms")
-        assert(timeTaken < 25)
+        println("Completed parsing input in $timeTaken ms")
+        assert(timeTaken < upperBound)
     }
 }
