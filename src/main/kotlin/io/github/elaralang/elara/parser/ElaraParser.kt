@@ -55,7 +55,7 @@ class ElaraParser(tokenList: List<Token>) {
            TokenType.COLON -> parseFunctionDefinition()
            TokenType.STRUCT -> parseStruct()
            TokenType.IF -> parseIfExpr(*closingType)
-           TokenType.EXTEND -> TODO("Parse extension scope")
+           TokenType.EXTEND -> parseExtendExpr()
            else -> invalidSyntax("Unexpected token : ${tokens.peek().text} of type ${tokens.peek().type}")
        }
     }
@@ -252,6 +252,15 @@ class ElaraParser(tokenList: List<Token>) {
             parseToken(*closingToken)
         } else null
         return ConditionalNode(expr, result, elseBranch)
+    }
+
+    private fun parseExtendExpr(): ExtensionNode {
+        TokenType.EXTEND.expect()
+        val identifier = TokenType.IDENTIFIER.expect()
+        val extensionScope = parseScope()
+        return ExtensionNode(identifier.text).apply {
+            addChild(extensionScope)
+        }
     }
 
 

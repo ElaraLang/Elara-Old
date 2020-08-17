@@ -63,6 +63,11 @@ data class ContextNode(val contextIdentifier: String): ASTNode() {
         return "ContextNode(context=${contextIdentifier},children=$children)"
     }
 }
+data class ExtensionNode(val contextIdentifier: String): ASTNode() {
+    override fun toString(): String {
+        return "ExtensionNode(context=${contextIdentifier},children=$children)"
+    }
+}
 //---- test rewrite
 class ExpressionNode: ASTNode(){
     override fun toString(): String {

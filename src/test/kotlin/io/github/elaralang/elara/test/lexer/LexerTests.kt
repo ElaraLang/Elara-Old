@@ -64,7 +64,7 @@ class LexerTests {
     fun `Test simple lexer output with basic division extension function`() {
         val testInput = """
             extend Number {
-              let isDivisibleBy = (Int value) => this % value == 0
+                let isDivisibleBy = (Int value) => this % value == 0
             }
         """.trimIndent()
 

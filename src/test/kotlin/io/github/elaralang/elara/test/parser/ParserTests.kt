@@ -443,6 +443,48 @@ class ParserTests {
         }, ast)
     }
 
+    @Test
+    fun `Test Correct Parsing of Extension scope`() {
+        val text = """
+            extend Something {
+                let sayHi = :() => this print "hi"
+            }
+        """.trimIndent()
+        val tokens = lexer.lex(text)
+        val ast = ElaraParser(tokens).parse()
+        print(ast)
+        assertEquals(RootNode().apply {
+            addChild(
+                    ExpressionNode().apply {
+                        addChild(
+                                ExtensionNode("Something").apply {
+                                    addChild(
+                                            DeclarationNode(
+                                                    "sayHi",
+                                                    false,
+                                                    ExpressionNode().apply {
+                                                        addChild(
+                                                                ContextNode("this").apply {
+                                                                    addChild(
+                                                                            FunctionCallNode(
+                                                                                    "print",
+                                                                                    ParameterNode().apply {
+                                                                                        addChild(StringNode("hi"))
+                                                                                    }
+                                                                            )
+                                                                    )
+                                                                }
+                                                        )
+                                                    }
+                                            )
+                                    )
+                                }
+                        )
+                    }
+            )
+        }, ast)
+    }
+
 
     private fun number(num: Long): ExpressionNode {
         return ExpressionNode().apply { addChild(NumberNode(num)) }
