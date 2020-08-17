@@ -2,7 +2,10 @@ package io.github.elaralang.elara.test.parser
 
 import io.github.elaralang.elara.lexer.ElaraLexer
 import io.github.elaralang.elara.parser.*
+import io.github.elaralang.elara.parser.ElaraParser
 import org.junit.jupiter.api.Test
+import javax.naming.Context
+import kotlin.system.measureNanoTime
 import kotlin.test.assertEquals
 
 /**
@@ -18,9 +21,13 @@ class ParserTests {
         """.trimIndent()
         val tokens = lexer.lex(text)
         val ast = ElaraParser(tokens).parse()
-
+        println(ast)
         assertEquals(RootNode().apply {
-            addChild(DeclarationNode("a", false, NumberNode(3)))
+            addChild(
+                    ExpressionNode().apply {
+                        addChild(DeclarationNode("a", false, number(3)))
+                    }
+            )
         }, ast)
     }
 
@@ -34,8 +41,20 @@ class ParserTests {
         val ast = ElaraParser(tokens).parse()
 
         assertEquals(RootNode().apply {
-            addChild(DeclarationNode("a", true, NumberNode(3)))
-            addChild(AssignmentNode("a", NumberNode(4)))
+            addChild(
+                    ExpressionNode().apply {
+                        addChild(
+                                DeclarationNode("a", true, number(3))
+                        )
+                    }
+            )
+            addChild(
+                    ExpressionNode().apply {
+                        addChild(
+                                AssignmentNode("a", number(4))
+                        )
+                    }
+            )
         }, ast)
     }
 
@@ -49,35 +68,47 @@ class ParserTests {
         print(ast)
         assertEquals(RootNode().apply {
             addChild(
-                    FunctionCallNode(
-                            "someFunction",
-                            ParameterNode().apply {
-                                addChild(IdentifierNode("param1"))
-                                addChild(NumberNode(123))
-                                addChild(IdentifierNode("param3"))
-                            }
-                    )
+                    ExpressionNode().apply {
+                        addChild(
+                            FunctionCallNode(
+                                    "someFunction",
+                                    ParameterNode().apply {
+                                        addChild(IdentifierNode("param1"))
+                                        addChild(NumberNode(123))
+                                        addChild(IdentifierNode("param3"))
+                                    }
+                            )
+                        )
+                    }
             )
         }, ast)
     }
     @Test
     fun `Test Correct Parsing of Function Call Without Parentheses`() {
         val text = """
-            someFunction param1 123 param3
+            this someFunction param1 123 param3
         """.trimIndent()
         val tokens = lexer.lex(text)
         val ast = ElaraParser(tokens).parse()
 
         assertEquals(RootNode().apply {
             addChild(
-                FunctionCallNode(
-                    "someFunction",
-                    ParameterNode().apply {
-                        addChild(IdentifierNode("param1"))
-                        addChild(NumberNode(123))
-                        addChild(IdentifierNode("param3"))
+                    ExpressionNode().apply {
+                        addChild(
+                            ContextNode("this").apply {
+                                addChild(
+                                        FunctionCallNode(
+                                                "someFunction",
+                                                ParameterNode().apply {
+                                                    addChild(IdentifierNode("param1"))
+                                                    addChild(NumberNode(123))
+                                                    addChild(IdentifierNode("param3"))
+                                                }
+                                        )
+                                )
+                            }
+                        )
                     }
-                )
             )
         }, ast)
     }
@@ -93,15 +124,23 @@ class ParserTests {
         print(ast)
         assertEquals(RootNode().apply {
             addChild(
-                    FunctionNode(
-                            TypedParameterNode().apply {
-                                addChild(TypedIdentifierNode("a", null, "Int"))
-                                addChild(TypedIdentifierNode("b", NumberNode(10), null))
-                            },
-                            ScopeNode().apply {
-                                addChild(DeclarationNode("c", false, NumberNode(5)))
-                            }
-                    )
+                    ExpressionNode().apply {
+                        addChild(
+                            FunctionNode(
+                                    TypedParameterNode().apply {
+                                        addChild(TypedIdentifierNode("a", null, "Int"))
+                                        addChild(TypedIdentifierNode("b", number(10), null))
+                                    },
+                                    ScopeNode().apply {
+                                        addChild(
+                                                ExpressionNode().apply {
+                                                    addChild(DeclarationNode("c", false, number(5)))
+                                                }
+                                        )
+                                    }
+                            )
+                        )
+                    }
             )
         }, ast)
     }
@@ -112,7 +151,7 @@ class ParserTests {
             struct Human {
                 Int age = 18
                 height = 177
-                Int speed = 5
+                Int speed
             }
         """.trimIndent()
         val tokens = lexer.lex(text)
@@ -120,31 +159,35 @@ class ParserTests {
         print(ast)
         assertEquals(RootNode().apply {
             addChild(
-                    StructNode(
-                            "Human",
-                            TypedParameterNode().apply {
-                                addChild(
-                                        TypedIdentifierNode(
-                                                "age",
-                                                NumberNode(18),
-                                                "Int"
+                    ExpressionNode().apply {
+                        addChild(
+                            StructNode(
+                                    "Human",
+                                    TypedParameterNode().apply {
+                                        addChild(
+                                                TypedIdentifierNode(
+                                                        "age",
+                                                        number(18),
+                                                        "Int"
+                                                )
                                         )
-                                )
-                                addChild(
-                                        TypedIdentifierNode(
-                                                "height",
-                                                NumberNode(177)
+                                        addChild(
+                                                TypedIdentifierNode(
+                                                        "height",
+                                                        number(177)
+                                                )
                                         )
-                                )
-                                addChild(
-                                        TypedIdentifierNode(
-                                                "speed",
-                                                NumberNode(5),
-                                                "Int"
+                                        addChild(
+                                                TypedIdentifierNode(
+                                                        "speed",
+                                                        null,
+                                                        "Int"
+                                                )
                                         )
-                                )
-                            }
-                    )
+                                    }
+                            )
+                        )
+                    }
             )
         }, ast)
     }
@@ -160,9 +203,13 @@ class ParserTests {
         print(ast)
         assertEquals(RootNode().apply {
             addChild(
-                    ContextNode(
-                            "someStructInstance"
-                    ).apply { addChild(IdentifierNode("someField")) }
+                    ExpressionNode().apply {
+                        addChild(
+                            ContextNode(
+                                    "someStructInstance"
+                            ).apply { addChild(IdentifierNode("someField")) }
+                        )
+                    }
             )
         }, ast)
     }
@@ -177,10 +224,14 @@ class ParserTests {
         print(ast)
         assertEquals(RootNode().apply {
             addChild(
-                    ContextNode(
-                            "someStructInstance"
-                    ).apply {
-                        addChild(AssignmentNode("someField", NumberNode(5)))
+                    ExpressionNode().apply {
+                        addChild(
+                            ContextNode(
+                                    "someStructInstance"
+                            ).apply {
+                                addChild(AssignmentNode("someField", NumberNode(5)))
+                            }
+                        )
                     }
             )
         }, ast)
@@ -195,21 +246,29 @@ class ParserTests {
         print(ast)
         assertEquals(RootNode().apply {
             addChild(
-                    ContextNode(
-                            "someStructInstance"
-                    ).apply {
+                    ExpressionNode().apply {
                         addChild(
-                                FunctionCallNode(
-                                        "someFunction",
-                                        ParameterNode().apply {
-                                            addChild(
-                                                    NumberNode(15)
-                                            )
-                                        }
+                            ContextNode(
+                                    "someStructInstance"
+                            ).apply {
+                                addChild(
+                                        FunctionCallNode(
+                                                "someFunction",
+                                                ParameterNode().apply {
+                                                    addChild(
+                                                            NumberNode(15)
+                                                    )
+                                                }
+                                        )
                                 )
+                            }
                         )
                     }
             )
         }, ast)
     }
+}
+
+private fun number(num: Long): ExpressionNode {
+    return ExpressionNode().apply { addChild(NumberNode(num)) }
 }

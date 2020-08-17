@@ -1,13 +1,14 @@
 package io.github.elaralang.elara.parser
 
 import io.github.elaralang.elara.exceptions.invalidSyntax
-import io.github.elaralang.elara.lexer.ElaraLexer
 import io.github.elaralang.elara.lexer.Token
 import io.github.elaralang.elara.lexer.TokenType
 import java.util.*
 
 class ElaraParser(tokenList: List<Token>) {
-
+    companion object {
+        private val continuation = Token(TokenType.IDENTIFIER, "#CONTINUATION")
+    }
     private val tokens = Stack<Token>()
 
     init {
@@ -17,246 +18,246 @@ class ElaraParser(tokenList: List<Token>) {
 
     fun parse(): RootNode {
         val rootNode = RootNode()
-        while (tokens.isNotEmpty()) {
-            val child = parseExpression()
-            child?.let { rootNode.addChild(it) }
+        while (tokens.isNotEmpty() && tokens.peek().type != TokenType.EOF) {
+            cleanTopOfStack()
+            val child = parseExpressionTill(TokenType.NEWLINE)
+            rootNode.addChild(child)
         }
         return rootNode
     }
 
-    private fun parseToken(token: Token?): ASTNode? {
-        if (token == null) return null
-        return when (token.type) {
-            TokenType.IDENTIFIER -> IdentifierNode(token.text)
-            TokenType.NUMBER -> NumberNode(token.text.toLong())
-            TokenType.STRING -> StringNode(token.text)
-            else -> invalidSyntax("Invalid expression at ${token.text}")
+    // General expression parse function
+    private fun parseExpressionTill(vararg closingType: TokenType): ASTNode {
+        val exprNode = ExpressionNode()
+        while (!tokens.empty() && tokens.peek().type !in closingType) {
+            cleanTopOfStack()
+            val child =
+                    if (exprNode.children.size == 0)parseToken(*closingType) ?: return exprNode
+                    else parseIdentifierWithLookahead(continuation,*closingType) ?: return exprNode
+
+            exprNode.addChild(child)
+        }
+        return exprNode
+    }
+
+    // Non-specific Token parsers
+    private fun parseToken(vararg closingType: TokenType): ASTNode? {
+       return when (tokens.peek().type) {
+           in closingType, TokenType.EOF -> null
+           TokenType.NUMBER -> NumberNode(tokens.pop().text.toLong())
+           TokenType.STRING -> StringNode(tokens.pop().text)
+
+           TokenType.IDENTIFIER -> parseIdentifierWithLookahead(tokens.pop(), *closingType)
+
+           TokenType.LPAREN -> parseParenthesisExpression()
+           TokenType.LBRACE -> parseScope()
+           TokenType.LET -> parseDeclaration(*closingType)
+           TokenType.COLON -> parseFunctionDefinition()
+           TokenType.STRUCT -> parseStruct()
+           else -> invalidSyntax("Unexpected token : ${tokens.peek().text} of type ${tokens.peek().type}")
+       }
+    }
+
+    private fun parseIdentifierWithLookahead(lastToken: Token, vararg closingType: TokenType): ASTNode? {
+        return when (tokens.peek().type) {
+            in closingType, TokenType.EOF -> {
+                if (lastToken == continuation) null
+                else IdentifierNode(lastToken.text)
+            }
+            TokenType.DOT -> {
+                tokens.pop()
+                parseContextual(lastToken.text, *closingType)
+            }
+            TokenType.IDENTIFIER -> parseInfixFunctionCall(lastToken.text, tokens.pop().text,)
+            TokenType.LPAREN -> parseFunctionCall(lastToken.text)
+            TokenType.DEF -> parseAssignment(lastToken.text, *closingType)
+            else -> invalidSyntax("Unexpected token : ${tokens.peek().text}")
         }
     }
 
-    private fun parseExpression(
-        lastToken: Token? = null,
-        endTokens: Set<TokenType>? = null,
-        function: Boolean = false
-    ): ASTNode? {
-        val currentToken = tokens.pop()
-        if (currentToken.type == TokenType.EOF) {
-            return null
+    private fun parseTokenLimited(vararg closingType: TokenType): ASTNode? {
+        return when (tokens.peek().type) {
+            in closingType -> null
+            TokenType.NUMBER -> NumberNode(tokens.pop().text.toLong())
+            TokenType.STRING -> StringNode(tokens.pop().text)
+            TokenType.IDENTIFIER -> parseTokenLimitedWithLookAhead(tokens.pop(), *closingType)
+            else -> invalidSyntax("Unexpected token in context : ${tokens.peek().text} of type ${tokens.peek().type}")
         }
-        if (endTokens != null && currentToken.type in endTokens) {
-            tokens.add(currentToken)
-            return lastToken?.let { parseToken(it) ?: invalidSyntax("Invalid Expression!") }
-        }
-
-        if (lastToken == null) {
-            //No prior context
-
-            return when (currentToken.type) {
-                // let test = <expression>
-                TokenType.LPAREN -> {
-                    parseExpression(endTokens = setOf(TokenType.RPAREN))
-                }
-                TokenType.LET -> {
-                    parseDeclaration()
-                }
-                // ambiguous => requires next Token for context
-                TokenType.IDENTIFIER -> {
-                    if (function) {
-                        return IdentifierNode(currentToken.text)
-                    }
-                    val next = parseExpression(currentToken, endTokens)
-                    if (next != null) {
-                        return next
-                    }
-                    return IdentifierNode(currentToken.text)
-                }
-                TokenType.NUMBER -> {
-                    NumberNode(currentToken.text.toLong())
-                }
-                TokenType.LBRACE -> {
-                    parseScope()
-                }
-                TokenType.COLON -> {
-                    parseFunction()
-                }
-                TokenType.STRUCT -> {
-                    parseStruct()
-                }
-                TokenType.NEWLINE -> {
-                    parseExpression(endTokens = endTokens)
-                }
-                else -> invalidSyntax("Unexpected token $currentToken")
+    }
+    private fun parseTokenLimitedWithLookAhead(lastToken: Token, vararg closingType: TokenType): ASTNode? {
+        return when (tokens.peek().type) {
+            in closingType -> IdentifierNode(lastToken.text)
+            TokenType.DOT -> {
+                tokens.pop()
+                parseContextualLimited(lastToken.text, *closingType)
             }
-
-        } else {
-            // Check last context
-            return when (lastToken.type) {
-                TokenType.IDENTIFIER -> {
-                    when (currentToken.type) {
-                        TokenType.LPAREN -> {
-                            parseFunctionCall(lastToken, TokenType.COMMA, setOf(TokenType.RPAREN))
-                        }
-                        TokenType.DEF -> {
-                            parseAssignment(lastToken)
-                        }
-                        TokenType.NEWLINE -> {
-                            parseToken(lastToken)
-                        }
-                        TokenType.DOT -> {
-                            parseContextExpression(lastToken)
-                        }
-                        else -> {
-                            if (function) {
-                                invalidSyntax("Unexpected token $currentToken")
-                            }
-                            tokens.push(currentToken)
-                            val closers = mutableSetOf(TokenType.NEWLINE)
-                            if (endTokens != null) closers.addAll(endTokens)
-                            parseFunctionCall(lastToken, null, closers)
-                        }
-                    }
-                }
-                else -> invalidSyntax("Unexpected token $lastToken")
-            }
+            TokenType.LPAREN -> parseFunctionCall(lastToken.text)
+            else -> IdentifierNode(lastToken.text)
         }
     }
 
-    private fun parseScope(): ASTNode {
-        val scope = ScopeNode()
-        while (tokens.peek().type != TokenType.RBRACE) {
-            val expression = parseExpression(endTokens = setOf(TokenType.RBRACE))
-            if (expression != null)
-                scope.addChild(expression)
-        }
-        tokens.pop()
-        return scope
+
+
+
+    // Specific parse functions
+
+    private fun parseParenthesisExpression(): ASTNode {
+        TokenType.LPAREN.expect() // remove (
+        val exp = parseExpressionTill(TokenType.RPAREN)
+        TokenType.RPAREN.expect() // remove )
+        return exp
     }
 
-    private fun parseParams(separator: TokenType?, endType: Set<out TokenType>): ParameterNode {
-        val paramNode = ParameterNode()
-        val paramClosers = endType.toMutableSet()
-        if (separator != null) paramClosers.add(separator)
-        val endTypes = setOf(TokenType.EOF, *endType.toTypedArray())
-        while (tokens.isNotEmpty() && tokens.peek().type !in endTypes) {
-            val token = tokens.peek()
-            val param = parseExpression(null, paramClosers, true) ?: invalidSyntax("Unexpected token in function call $token")
-
-            paramNode.addChild(param)
-            if (separator != null) {
-                if (tokens.peek().type !in setOf(separator, endType)) invalidSyntax("Invalid separator in function!")
-                if (tokens.peek().type == separator) tokens.pop()
+    private fun parseScope(): ScopeNode {
+        TokenType.LBRACE.expect() // remove {
+        cleanTopOfStack()
+        return ScopeNode().apply {
+            while (!tokens.empty() && tokens.peek().type != TokenType.RBRACE) {
+                addChild(parseExpressionTill(TokenType.NEWLINE, TokenType.RBRACE))
+                cleanTopOfStack()
             }
+            TokenType.RBRACE.expect() // remove }
         }
-        tokens.pop()
+    }
+
+    private fun parseDeclaration(vararg closingType: TokenType): DeclarationNode {
+        TokenType.LET.expect()
+        val mutable = TokenType.MUT.tryPop()
+        val identifier = TokenType.IDENTIFIER.expect()
+        TokenType.DEF.expect()
+        val expr = parseExpressionTill(*closingType)
+        return DeclarationNode (
+                identifier = identifier.text,
+                mutable = mutable,
+                value = expr
+        )
+    }
+
+    private fun parseAssignment(identifier: String, vararg closingType: TokenType): AssignmentNode {
+        TokenType.DEF.expect()
+        val expr = parseExpressionTill(*closingType)
+        return AssignmentNode(identifier, expr)
+    }
+
+    private fun parseFunctionDefinition(): FunctionNode {
+        TokenType.COLON.expect()
+        val typedParams: TypedParameterNode = parseTypedParams(TokenType.LPAREN, TokenType.RPAREN, TokenType.COMMA)
+        TokenType.ARROW.expect()
+        val scope = parseToken() ?: invalidSyntax("Function scope not defined")
+        return FunctionNode(typedParams, scope)
+    }
+
+    private fun parseTypedParams(openingToken: TokenType, closingToken: TokenType, vararg separator: TokenType): TypedParameterNode {
+        openingToken.expect()
+        val paramNode = TypedParameterNode()
+        while (tokens.peek().type != closingToken) {
+            paramNode.addChild(parseTypedIdentifier(closingToken, *separator))
+            separator.any { it.tryPop() }
+        }
+        cleanTopOfStack()
+        closingToken.expect()
         return paramNode
     }
 
-    private fun parseFunctionCall(identifier: Token, separator: TokenType?,endType: Set<TokenType>): FunctionCallNode {
-        val params = parseParams(separator, endType)
-        return FunctionCallNode(identifier.text, params)
-    }
+    private fun parseTypedIdentifier(closingToken: TokenType, vararg separator: TokenType): TypedIdentifierNode {
+        cleanTopOfStack()
+        val first = TokenType.IDENTIFIER.expect()
+        val second = tokens.pop()
+        return when (second.type) {
+            TokenType.IDENTIFIER -> {
+                val expr = if (TokenType.DEF.tryPop()) {
+                    parseExpressionTill(closingToken, *separator)
+                } else null
 
-    private fun parseFunction(): FunctionNode {
-        val lToken = tokens.pop()
-        if (lToken.type != TokenType.LPAREN) invalidSyntax("Parameter not specified for function definition")
-        val params = parseTypedParams(TokenType.RPAREN, TokenType.COMMA)
-        val arrow = tokens.pop()
-        if (arrow.type != TokenType.ARROW) invalidSyntax("Function execution not defined! Expected ARROW got ${arrow.type}")
-        val expression = parseExpression() ?: invalidSyntax("Function not defined properly!")
-        return FunctionNode(params, expression)
+                TypedIdentifierNode(second.text, expr, first.text)
+            }
+            TokenType.DEF -> {
+                val expr = parseExpressionTill(closingToken, *separator)
+
+
+                TypedIdentifierNode(first.text, expr)
+            }
+            else -> invalidSyntax("Unexpected token on typed param parse, ${second.text} of type ${second.type}")
+        }
     }
 
     private fun parseStruct(): StructNode {
-        if (tokens.size < 3) invalidSyntax("Incomplete struct definition")
-        val id = tokens.pop();
-        if (id.type != TokenType.IDENTIFIER)
-            invalidSyntax("Identifier not specified for struct declaration")
-        if (tokens.pop().type != TokenType.LBRACE) invalidSyntax("Struct definition not specified")
-
-        val typedParams = parseTypedParams(TokenType.RBRACE)
+        TokenType.STRUCT.expect()
+        val id = TokenType.IDENTIFIER.expect()
+        val typedParams = parseTypedParams(TokenType.LBRACE, TokenType.RBRACE, TokenType.NEWLINE)
         return StructNode(id.text, typedParams)
     }
 
-    private fun parseTypedParams(closingType: TokenType, separator: TokenType? = null): TypedParameterNode {
-        val typedParams = TypedParameterNode()
-        cleanNewLines()
-        while (tokens.peek().type != closingType) {
-            val typedIdentifier = parseTypedIdentifier(closingType)
-            cleanNewLines()
-            if (separator != null && tokens.peek().type !in setOf(separator, closingType)) invalidSyntax("Invalid separator in Typed parameter!")
-            if (tokens.peek().type == separator)tokens.pop()
-            typedParams.addChild(typedIdentifier)
+    private fun parseContextual(context: String, vararg closingType: TokenType): ContextNode {
+        val expr = parseToken(*closingType) ?: invalidSyntax("Invalid token in context : $context")
+        if (expr is ScopeNode) invalidSyntax("Cannot create a scope in a context call : $context")
+        when (expr) {
+            is AssignmentNode, is FunctionCallNode, is IdentifierNode -> Unit
+            else -> invalidSyntax("${expr::class.java.simpleName} cannot be used in a context call")
         }
-        tokens.pop()
-        return typedParams
+        return ContextNode(context).apply {
+            addChild(expr)
+        }
     }
-
-
-    private fun parseTypedIdentifier(endType: TokenType): TypedIdentifierNode {
-        if (tokens.size < 2) invalidSyntax("Incomplete Typed Identifier")
-        val left = tokens.pop()
-        val right = tokens.pop()
-        if (left.type != TokenType.IDENTIFIER) invalidSyntax("Invalid syntax at Typed Identifier expression")
-
-        return when (right.type) {
-            TokenType.IDENTIFIER -> {
-                if (tokens.peek().type == TokenType.DEF) {
-                    tokens.pop()
-                    val expr = parseExpression(endTokens = setOf(TokenType.NEWLINE, endType)) ?: invalidSyntax("Invalid default value for parameter -> ${right.text}")
-
-                    TypedIdentifierNode(right.text, expr, left.text)
-                } else {
-                    TypedIdentifierNode(right.text, null, left.text)
-                }
-            }
-            TokenType.DEF -> {
-                val expr = parseExpression(endTokens = setOf(TokenType.NEWLINE, endType)) ?: invalidSyntax("Invalid default value for parameter -> ${right.text}")
-                return TypedIdentifierNode(left.text, expr)
-            }
-            else -> invalidSyntax("Invalid syntax at Typed Identifier expression")
+    private fun parseContextualLimited(context: String, vararg closingType: TokenType): ContextNode {
+        val expr = parseTokenLimited(*closingType) ?: invalidSyntax("Invalid token in limited context : $context")
+        if (expr is ScopeNode) invalidSyntax("Cannot create a scope in a limited context call : $context")
+        when (expr) {
+            is FunctionCallNode, is IdentifierNode -> Unit
+            else -> invalidSyntax("${expr::class.java.simpleName} cannot be used in a context call")
+        }
+        return ContextNode(context).apply {
+            addChild(expr)
         }
     }
 
-    private fun parseDeclaration(): DeclarationNode {
-        var id = tokens.pop()
-
-        val mutable: Boolean
-        if (id.type == TokenType.MUT) {
-            mutable = true
-            id = tokens.pop()
-        } else {
-            mutable = false
-        }
-
-        if (id.type != TokenType.IDENTIFIER) {
-            invalidSyntax("Identifier expected on declaration, found ${id.text} of type ${id.type}")
-        }
-
-        val eql = tokens.pop()
-
-        if (eql.type != TokenType.DEF) {
-            invalidSyntax("'=' expected on declaration, found ${id.text} of type ${id.type}")
-        }
-
-        val value: ASTNode = parseExpression() ?: invalidSyntax("Could not find expression to assign to ${id.text}")
-        return DeclarationNode(id.text, mutable, value)
-    }
-    private fun parseContextExpression(identifier: Token): ContextNode {
-        val expression = parseExpression() ?: invalidSyntax("Invalid expression provided for scope ${identifier.text}")
-        if (expression is ScopeNode) invalidSyntax("Scope cannot be created in a contextual call!")
-        return ContextNode(identifier.text).apply {
-            addChild(expression)
+    private fun parseInfixFunctionCall(context: String, functionName: String): ContextNode {
+        val param = parseCallParameters(null, TokenType.NEWLINE)
+        val functionCall = FunctionCallNode(functionName, param)
+        return ContextNode(context).apply {
+            addChild(functionCall)
         }
     }
 
-    private fun parseAssignment(lastToken: Token): AssignmentNode {
-        val value = parseExpression() ?: invalidSyntax("Value expected for assignment")
-        return AssignmentNode(lastToken.text, value)
+    private fun parseFunctionCall(functionName: String): FunctionCallNode {
+        val param = parseCallParameters(TokenType.LPAREN, TokenType.RPAREN, TokenType.COMMA)
+        return FunctionCallNode(functionName, param)
     }
 
-    private fun cleanNewLines() {
-        while (!tokens.empty() && tokens.peek().type == TokenType.NEWLINE) tokens.pop()
+    private fun parseCallParameters(openingToken: TokenType?, closingToken: TokenType, vararg separator: TokenType): ParameterNode {
+        val params = ParameterNode()
+        openingToken?.expect()
+
+        while (tokens.peek().type != closingToken) {
+            val expr = parseTokenLimited(closingToken,TokenType.EOF, *separator) ?: break
+            params.addChild(expr)
+            if (tokens.peek().type != closingToken && tokens.peek().type != TokenType.EOF && separator.isNotEmpty()) separator[0].expect()
+        }
+
+        val closed = closingToken.expect()
+        if (closed.type == TokenType.NEWLINE) tokens.push(closed)
+        return params
     }
 
+
+    // Utility functions
+
+    private fun cleanTopOfStack(token: TokenType = TokenType.NEWLINE) {
+        while (tokens.peek().type == token) tokens.pop()
+    }
+    private fun TokenType.expect(): Token {
+        if (this != TokenType.NEWLINE) cleanTopOfStack()
+        if (tokens.empty()) invalidSyntax("Tokens ended unexpectedly! Expected token of type $this")
+        val token = tokens.pop()
+        if (token.type != this && token.type != TokenType.EOF) invalidSyntax("Expected token of type $this")
+        return token
+    }
+    private fun TokenType.tryPop(): Boolean {
+        cleanTopOfStack()
+        return if (tokens.peek().type == this) {
+            tokens.pop()
+            true
+        } else false
+    }
 
 }
