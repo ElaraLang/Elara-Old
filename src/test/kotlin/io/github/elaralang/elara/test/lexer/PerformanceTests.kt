@@ -54,6 +54,6 @@ class PerformanceTests {
         """.trimIndent()
         val timeTaken = measureTimeMillis { lexer.lex(text) }
         println("Completed lexing Large input in $timeTaken ms")
-        assert(timeTaken < 75)
+        assert(timeTaken < 150)
     }
 }
