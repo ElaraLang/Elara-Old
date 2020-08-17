@@ -54,6 +54,8 @@ class ElaraParser(tokenList: List<Token>) {
            TokenType.LET -> parseDeclaration(*closingType)
            TokenType.COLON -> parseFunctionDefinition()
            TokenType.STRUCT -> parseStruct()
+           TokenType.IF -> parseIfExpr(*closingType)
+           TokenType.EXTEND -> TODO("Parse extension scope")
            else -> invalidSyntax("Unexpected token : ${tokens.peek().text} of type ${tokens.peek().type}")
        }
     }
@@ -237,6 +239,18 @@ class ElaraParser(tokenList: List<Token>) {
         val closed = closingToken.expect()
         if (closed.type == TokenType.NEWLINE) tokens.push(closed)
         return params
+    }
+
+
+    private fun parseIfExpr(vararg closingToken: TokenType): ConditionalNode {
+        TokenType.IF.expect()
+        val expr = parseExpressionTill(TokenType.ARROW)
+        TokenType.ARROW.expect()
+        val result = parseExpressionTill(TokenType.ELSE, *closingToken)
+        val elseBranch = if (TokenType.ELSE.tryPop()) {
+            parseToken(*closingToken)
+        } else null
+        return ConditionalNode(expr, result, elseBranch)
     }
 
 

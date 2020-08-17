@@ -20,6 +20,7 @@ enum class TokenType(val regex: Regex) {
     NAMESPACE("namespace".toRegex()),
     IMPORT("import".toRegex()),
     IF("if".toRegex()),
+    ELSE("else".toRegex()),
 
     //EQUAL("==(?!>)".toRegex()),
     DEF("=(?![>=])".toRegex()),

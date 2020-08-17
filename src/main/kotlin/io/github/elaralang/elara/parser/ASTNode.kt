@@ -57,6 +57,7 @@ data class IdentifierNode(val identifier: String) : ASTNode()
 data class FunctionCallNode(val identifier: String, val parameters: ParameterNode): ASTNode()
 data class TypedIdentifierNode(val identifier: String, val value: ASTNode? = null,val type: String? = null): ASTNode()
 data class StructNode(val identifier: String, val typedParams: TypedParameterNode): ASTNode()
+data class ConditionalNode(val expr: ASTNode, val mainBranch: ASTNode, val elseBranch: ASTNode?): ASTNode()
 data class ContextNode(val contextIdentifier: String): ASTNode() {
     override fun toString(): String {
         return "ContextNode(context=${contextIdentifier},children=$children)"

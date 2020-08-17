@@ -267,8 +267,184 @@ class ParserTests {
             )
         }, ast)
     }
-}
 
-private fun number(num: Long): ExpressionNode {
-    return ExpressionNode().apply { addChild(NumberNode(num)) }
+    @Test
+    fun `Test Correct Parsing of If expressions`() {
+        val text = """
+            if test() => {
+                this print a
+            }
+        """.trimIndent()
+        val tokens = lexer.lex(text)
+        val ast = ElaraParser(tokens).parse()
+        print(ast)
+        assertEquals(RootNode().apply {
+            addChild(
+                    ExpressionNode().apply {
+                        addChild(
+                                ConditionalNode(
+                                        ExpressionNode().apply {
+                                            addChild(
+                                            FunctionCallNode("test", ParameterNode())
+                                            )
+                                        },
+                                        ExpressionNode().apply {
+                                            addChild(
+                                                    ScopeNode().apply {
+                                                        addChild(
+                                                                ExpressionNode().apply {
+                                                                    addChild(
+                                                                        ContextNode("this").apply {
+                                                                            addChild(
+                                                                                    FunctionCallNode("print", ParameterNode().apply { addChild(IdentifierNode("a")) })
+                                                                            )
+                                                                        }
+                                                                    )
+                                                                }
+                                                        )
+                                                    }
+                                            )
+                                        },
+                                        null
+                                )
+                        )
+                    }
+            )
+        }, ast)
+    }
+
+    @Test
+    fun `Test Correct Parsing of If-else expressions`() {
+        val text = """
+            if test() => {
+                this print a
+            } else {
+                this print b
+            }
+        """.trimIndent()
+        val tokens = lexer.lex(text)
+        val ast = ElaraParser(tokens).parse()
+        print(ast)
+        assertEquals(RootNode().apply {
+            addChild(
+                    ExpressionNode().apply {
+                        addChild(
+                                ConditionalNode(
+                                        ExpressionNode().apply {
+                                            addChild(
+                                                    FunctionCallNode("test", ParameterNode())
+                                            )
+                                        },
+                                        ExpressionNode().apply {
+                                            addChild(
+                                                    ScopeNode().apply {
+                                                        addChild(
+                                                                ExpressionNode().apply {
+                                                                    addChild(
+                                                                            ContextNode("this").apply {
+                                                                                addChild(
+                                                                                        FunctionCallNode("print", ParameterNode().apply { addChild(IdentifierNode("a")) })
+                                                                                )
+                                                                            }
+                                                                    )
+                                                                }
+                                                        )
+                                                    }
+                                            )
+                                        },
+                                        ScopeNode().apply {
+                                            addChild(
+                                                    ExpressionNode().apply {
+                                                        addChild(
+                                                                ContextNode("this").apply {
+                                                                    addChild(
+                                                                            FunctionCallNode("print", ParameterNode().apply { addChild(IdentifierNode("b")) })
+                                                                    )
+                                                                }
+                                                        )
+                                                    }
+                                            )
+                                        }
+                                )
+                        )
+                    }
+            )
+        }, ast)
+    }
+
+    @Test
+    fun `Test Correct Parsing of If-else ladder expressions`() {
+        val text = """
+            if test() => {
+                this print a
+            } else if otherTest() => {
+                this print b
+            }
+        """.trimIndent()
+        val tokens = lexer.lex(text)
+        val ast = ElaraParser(tokens).parse()
+        print(ast)
+        assertEquals(RootNode().apply {
+            addChild(
+                    ExpressionNode().apply {
+                        addChild(
+                                ConditionalNode(
+                                        ExpressionNode().apply {
+                                            addChild(
+                                                    FunctionCallNode("test", ParameterNode())
+                                            )
+                                        },
+                                        ExpressionNode().apply {
+                                            addChild(
+                                                    ScopeNode().apply {
+                                                        addChild(
+                                                                ExpressionNode().apply {
+                                                                    addChild(
+                                                                            ContextNode("this").apply {
+                                                                                addChild(
+                                                                                        FunctionCallNode("print", ParameterNode().apply { addChild(IdentifierNode("a")) })
+                                                                                )
+                                                                            }
+                                                                    )
+                                                                }
+                                                        )
+                                                    }
+                                            )
+                                        },
+                                        ConditionalNode(
+                                                ExpressionNode().apply {
+                                                    addChild(
+                                                            FunctionCallNode("otherTest", ParameterNode())
+                                                    )
+                                                },
+                                                ExpressionNode().apply {
+                                                    addChild(
+                                                            ScopeNode().apply {
+                                                                addChild(
+                                                                        ExpressionNode().apply {
+                                                                            addChild(
+                                                                                    ContextNode("this").apply {
+                                                                                        addChild(
+                                                                                                FunctionCallNode("print", ParameterNode().apply { addChild(IdentifierNode("a")) })
+                                                                                        )
+                                                                                    }
+                                                                            )
+                                                                        }
+                                                                )
+                                                            }
+                                                    )
+                                                },
+                                                null
+                                        )
+                                )
+                        )
+                    }
+            )
+        }, ast)
+    }
+
+
+    private fun number(num: Long): ExpressionNode {
+        return ExpressionNode().apply { addChild(NumberNode(num)) }
+    }
 }
