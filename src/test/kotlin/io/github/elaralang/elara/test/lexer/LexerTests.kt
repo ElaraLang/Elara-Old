@@ -68,7 +68,7 @@ class LexerTests {
             }
         """.trimIndent()
 
-        val expectedTokenStream = listOf(
+        val expectedTokenStream = listOf (
             EXTEND, IDENTIFIER, LBRACE, NEWLINE,
             LET, IDENTIFIER, DEF, LPAREN, IDENTIFIER, IDENTIFIER, RPAREN, ARROW, IDENTIFIER, IDENTIFIER, IDENTIFIER, IDENTIFIER, NUMBER, NEWLINE,
             RBRACE, EOF

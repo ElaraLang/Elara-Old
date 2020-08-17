@@ -13,9 +13,10 @@ import kotlin.test.assertEquals
  */
 class ParserTests {
     private val lexer = ElaraLexer()
-
+    val a = mapOf("root" to "1.0.0", "lib" to "1.0.0")
     @Test
     fun `Test Correct Parsing of Basic Assignment Statement`() {
+
         val text = """
             let a = 3
         """.trimIndent()

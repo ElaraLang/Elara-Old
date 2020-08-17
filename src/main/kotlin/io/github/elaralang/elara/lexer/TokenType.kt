@@ -22,7 +22,8 @@ enum class TokenType(val regex: Regex) {
     IF("if".toRegex()),
     ELSE("else".toRegex()),
 
-    //EQUAL("==(?!>)".toRegex()),
+    OPERATOR("[+\\-*/]".toRegex()),
+    EQUAL("==(?!>)".toRegex()),
     DEF("=(?![>=])".toRegex()),
     ARROW("=>".toRegex()),
 
