@@ -248,6 +248,7 @@ class ElaraParser(tokenList: List<Token>) {
         TokenType.ARROW.expect()
         val result = parseExpressionTill(TokenType.ELSE, *closingToken)
         val elseBranch = if (TokenType.ELSE.tryPop()) {
+            if (tokens.peek().type != TokenType.IF) TokenType.ARROW.expect()
             parseToken(*closingToken)
         } else null
         return ConditionalNode(expr, result, elseBranch)

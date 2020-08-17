@@ -318,7 +318,7 @@ class ParserTests {
         val text = """
             if test() => {
                 this print a
-            } else {
+            } else => {
                 this print b
             }
         """.trimIndent()
