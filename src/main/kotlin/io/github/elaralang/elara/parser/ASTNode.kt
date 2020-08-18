@@ -1,7 +1,7 @@
 package io.github.elaralang.elara.parser
 
-import java.beans.Expression
-import java.lang.instrument.ClassDefinition
+import io.github.elaralang.elara.lexer.TokenType
+
 
 sealed class ASTNode {
     val children = mutableListOf<ASTNode>()
@@ -87,6 +87,7 @@ data class TypedIdentifierNode(val identifier: String, val value: ASTNode? = nul
 data class StructNode(val identifier: String, val typedParams: TypedParameterNode): ASTNode()
 data class ConditionalNode(val expr: ASTNode, val mainBranch: ASTNode, val elseBranch: ASTNode?): ASTNode()
 data class NamedParamNode(val identifier: String, val expr: ASTNode): ASTNode()
+data class BooleanExprNode(val booleanExprType: TokenType, val expr: ASTNode): ASTNode()
 data class ContextNode(val contextIdentifier: String): ASTNode() {
     override fun toString(): String {
         return "ContextNode(context=${contextIdentifier},children=$children)"

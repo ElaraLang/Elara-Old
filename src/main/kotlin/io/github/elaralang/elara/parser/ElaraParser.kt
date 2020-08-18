@@ -76,8 +76,18 @@ class ElaraParser(tokenList: List<Token>) {
             TokenType.LPAREN -> parseFunctionCall(lastToken.text)
             TokenType.DEF -> parseAssignment(lastToken.text, *closingType)
             TokenType.OPERATOR -> if (lastToken != continuation) IdentifierNode(lastToken.text) else parseOperation(false, *closingType)
+            TokenType.AND,
+            TokenType.OR,
+            TokenType.XOR,
+            TokenType.EQUALS -> if (lastToken != continuation) IdentifierNode(lastToken.text) else parseBooleanExpr(closingType)
             else -> invalidSyntax("Unexpected token : ${tokens.peek().text}")
         }
+    }
+
+    private fun parseBooleanExpr(closingType: Array<out TokenType>): BooleanExprNode {
+        val op = tokens.pop()
+        val rhs = parseExpressionTill(*closingType)
+        return BooleanExprNode(op.type, rhs)
     }
 
     private fun parseOperation(start: Boolean = false, vararg closingType: TokenType): ArithmeticNode {
@@ -335,4 +345,15 @@ class ElaraParser(tokenList: List<Token>) {
         } else false
     }
 
+}
+
+
+fun main() {
+    val text = """
+          if a == c => this print "True"
+          else => this print "false"
+        """.trimIndent()
+    val tokens = ElaraLexer().lex(text)
+    val ast = ElaraParser(tokens).parse()
+    print(ast)
 }
