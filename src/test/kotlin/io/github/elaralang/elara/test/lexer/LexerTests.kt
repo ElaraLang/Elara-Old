@@ -48,8 +48,8 @@ class LexerTests {
 
         val expectedTokenStream = listOf(
             LET, IDENTIFIER, DEF, LPAREN, IDENTIFIER, IDENTIFIER, RPAREN, ARROW, LBRACE, NEWLINE,
-            IDENTIFIER, IDENTIFIER, EQUAL, NUMBER, ARROW, RETURN, NUMBER, NEWLINE,
-            RETURN, IDENTIFIER, LPAREN, IDENTIFIER, IDENTIFIER, NUMBER, RPAREN, NEWLINE,
+            IF, IDENTIFIER, EQUALS, NUMBER, ARROW, RETURN, NUMBER, NEWLINE,
+            RETURN, IDENTIFIER, LPAREN, IDENTIFIER, OPERATOR, NUMBER, RPAREN, NEWLINE,
             RBRACE, EOF
         )
 
@@ -64,12 +64,14 @@ class LexerTests {
     fun `Test simple lexer output with basic division extension function`() {
         val testInput = """
             extend Number {
-              let isDivisableBy = (Int value) => this % value == 0
+                let isDivisibleBy = (Int value) => this % value == 0
             }
         """.trimIndent()
 
-        val expectedTokenStream = listOf(
-            EXTEND, IDENTIFIER, LBRACE, NEWLINE, LET, IDENTIFIER, DEF, LPAREN, IDENTIFIER, IDENTIFIER, RPAREN, ARROW, IDENTIFIER, IDENTIFIER, IDENTIFIER, EQUAL, NUMBER, NEWLINE, RBRACE, EOF
+        val expectedTokenStream = listOf (
+            EXTEND, IDENTIFIER, LBRACE, NEWLINE,
+            LET, IDENTIFIER, DEF, LPAREN, IDENTIFIER, IDENTIFIER, RPAREN, ARROW, IDENTIFIER, IDENTIFIER, IDENTIFIER, EQUALS, NUMBER, NEWLINE,
+            RBRACE, EOF
         )
 
         val tokenStream = ElaraLexer().lex(testInput)
@@ -87,5 +89,6 @@ class LexerTests {
         )
         assertEquals(expectedTokenStream, ElaraLexer().lex(testInput).map { it.type })
     }
+
 
 }
