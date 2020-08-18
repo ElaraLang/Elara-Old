@@ -87,7 +87,9 @@ class ElaraParser(tokenList: List<Token>) {
     private fun parseBooleanExpr(closingType: Array<out TokenType>): BooleanExprNode {
         val op = tokens.pop()
         val rhs = parseExpressionTill(*closingType)
-        return BooleanExprNode(op.type, rhs)
+        return BooleanExprNode(op.type).apply {
+            addChild(rhs)
+        }
     }
 
     private fun parseOperation(start: Boolean = false, vararg closingType: TokenType): ArithmeticNode {
@@ -348,12 +350,3 @@ class ElaraParser(tokenList: List<Token>) {
 }
 
 
-fun main() {
-    val text = """
-          if a == c => this print "True"
-          else => this print "false"
-        """.trimIndent()
-    val tokens = ElaraLexer().lex(text)
-    val ast = ElaraParser(tokens).parse()
-    print(ast)
-}

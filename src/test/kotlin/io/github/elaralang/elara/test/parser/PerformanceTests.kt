@@ -20,7 +20,7 @@ class PerformanceTests {
     }
 
     @Test
-    fun `Test Lexer Performance Medium`() {
+    fun `Test Parser Performance Medium`() {
         checkParseTimeBound(
             """
             let a = functionCall(test,123,a())
@@ -35,7 +35,7 @@ class PerformanceTests {
     }
 
     @Test
-    fun `Test Lexer Performance Large`() {
+    fun `Test Parser Performance Large`() {
         checkParseTimeBound(
             """
             let a = 5
@@ -49,6 +49,23 @@ class PerformanceTests {
             let divideTest = :(Int a, Int b) => a * b
             this print divideTest(a,b)
         """.trimIndent(), 25
+        )
+    }
+
+    @Test
+    fun `Test Parser Performance For Arithmetic`() {
+        checkParseTimeBound(
+                """
+            let a = a + b * c + (a + b + c) * c
+        """.trimIndent(), 10
+        )
+    }
+    @Test
+    fun `Test Parser Performance For Boolean Expressions`() {
+        checkParseTimeBound(
+                """
+            let a = a && b || (c && d)
+        """.trimIndent(), 10
         )
     }
 

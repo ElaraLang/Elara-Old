@@ -1,6 +1,7 @@
 package io.github.elaralang.elara.test.parser
 
 import io.github.elaralang.elara.lexer.ElaraLexer
+import io.github.elaralang.elara.lexer.TokenType
 import io.github.elaralang.elara.parser.*
 import io.github.elaralang.elara.parser.ElaraParser
 import org.junit.jupiter.api.Test
@@ -593,6 +594,61 @@ class ParserTests {
 
                                         }
                                 )
+                        )
+                    }
+            )
+        }, ast)
+    }
+
+    @Test
+    fun `Test Correct Parsing of Boolean Expressions`() {
+        val text = """
+            a && (b == c) || (a ^ b ^ c)
+        """.trimIndent()
+        val tokens = lexer.lex(text)
+        val ast = ElaraParser(tokens).parse()
+        print(ast)
+        assertEquals(RootNode().apply {
+            addChild(
+                    ExpressionNode().apply {
+                        addChild(IdentifierNode("a"))
+                        addChild(
+                                BooleanExprNode(TokenType.AND).apply {
+                                    addChild(
+                                            ExpressionNode().apply {
+                                                addChild(IdentifierNode("b"))
+                                                addChild(
+                                                        BooleanExprNode(TokenType.EQUALS).apply {
+                                                            addChild(
+                                                                    ExpressionNode().apply {
+                                                                        addChild(IdentifierNode("c"))
+
+                                                                    }
+                                                            )
+                                                        }
+                                                )
+                                            }
+                                    )
+                                    addChild(
+                                            BooleanExprNode(TokenType.OR).apply {
+                                                addChild(
+                                                        ExpressionNode().apply {
+                                                            addChild(IdentifierNode("a"))
+                                                            addChild(
+                                                                    BooleanExprNode(TokenType.XOR).apply {
+                                                                        addChild(IdentifierNode("b"))
+                                                                    }
+                                                            )
+                                                            addChild(
+                                                                    BooleanExprNode(TokenType.XOR).apply {
+                                                                        addChild(IdentifierNode("c"))
+                                                                    }
+                                                            )
+                                                        }
+                                                )
+                                            }
+                                    )
+                                }
                         )
                     }
             )
