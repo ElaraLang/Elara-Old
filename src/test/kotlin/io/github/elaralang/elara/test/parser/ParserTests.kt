@@ -320,9 +320,8 @@ class ParserTests {
     @Test
     fun `Test Correct Parsing of If expressions`() {
         val text = """
-            if test() => {
-                this print a
-            }
+            if test() => ? print "a"
+            else => ? print "b"
         """.trimIndent()
         val tokens = lexer.lex(text)
         val ast = ElaraParser(tokens).parse()
