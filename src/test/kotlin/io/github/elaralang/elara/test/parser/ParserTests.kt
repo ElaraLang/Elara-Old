@@ -1,12 +1,8 @@
 package io.github.elaralang.elara.test.parser
 
 import io.github.elaralang.elara.lexer.ElaraLexer
-import io.github.elaralang.elara.lexer.TokenType
 import io.github.elaralang.elara.parser.*
-import io.github.elaralang.elara.parser.ElaraParser
 import org.junit.jupiter.api.Test
-import javax.naming.Context
-import kotlin.system.measureNanoTime
 import kotlin.test.assertEquals
 
 /**
@@ -15,6 +11,7 @@ import kotlin.test.assertEquals
 class ParserTests {
     private val lexer = ElaraLexer()
     val a = mapOf("root" to "1.0.0", "lib" to "1.0.0")
+
     @Test
     fun `Test Correct Parsing of Basic Assignment Statement`() {
 
@@ -22,15 +19,13 @@ class ParserTests {
             let a = 3
         """.trimIndent()
         val tokens = lexer.lex(text)
-        val ast = ElaraParser(tokens).parse()
-        println(ast)
-        assertEquals(RootNode().apply {
-            addChild(
-                    ExpressionNode().apply {
-                        addChild(DeclarationNode("a", false, number(3)))
-                    }
-            )
-        }, ast)
+        val ast = ElaraParser().parse(TokenStack(tokens))
+
+        assertEquals(
+            listOf(
+                VariableDeclarationStatement(false, "a", Literal(3))
+            ), ast
+        )
     }
 
     @Test
@@ -40,24 +35,14 @@ class ParserTests {
             a = 4
         """.trimIndent()
         val tokens = lexer.lex(text)
-        val ast = ElaraParser(tokens).parse()
+        val ast = ElaraParser().parse(TokenStack(tokens))
 
-        assertEquals(RootNode().apply {
-            addChild(
-                    ExpressionNode().apply {
-                        addChild(
-                                DeclarationNode("a", true, number(3))
-                        )
-                    }
-            )
-            addChild(
-                    ExpressionNode().apply {
-                        addChild(
-                                AssignmentNode("a", number(4))
-                        )
-                    }
-            )
-        }, ast)
+        assertEquals(
+            listOf(
+                VariableDeclarationStatement(true, "a", Literal(3)),
+                ExpressionStatement(Assignment("a", Literal(4)))
+            ), ast
+        )
     }
 
     @Test
@@ -66,24 +51,19 @@ class ParserTests {
             someFunction(param1, 123, param3)
         """.trimIndent()
         val tokens = lexer.lex(text)
-        val ast = ElaraParser(tokens).parse()
-        print(ast)
-        assertEquals(RootNode().apply {
-            addChild(
-                    ExpressionNode().apply {
-                        addChild(
-                            FunctionCallNode(
-                                    "someFunction",
-                                    ParameterNode().apply {
-                                        addChild(IdentifierNode("param1"))
-                                        addChild(NumberNode(123))
-                                        addChild(IdentifierNode("param3"))
-                                    }
-                            )
+        val ast = ElaraParser().parse(TokenStack(tokens))
+
+        assertEquals(
+            listOf(
+                ExpressionStatement(
+                    FunctionInvocation(
+                        ElaraUnit, listOf(
+                            Variable("param1"), Literal(123), Variable("param3")
                         )
-                    }
-            )
-        }, ast)
+                    )
+                )
+            ), ast
+        )
     }
 
 
@@ -93,41 +73,9 @@ class ParserTests {
             someFunction(a = param1, b = 123, c = param3)
         """.trimIndent()
         val tokens = lexer.lex(text)
-        val ast = ElaraParser(tokens).parse()
+        val ast = ElaraParser().parse(TokenStack(tokens))
         print(ast)
-        assertEquals(RootNode().apply {
-            addChild(
-                    ExpressionNode().apply {
-                        addChild(
-                                FunctionCallNode(
-                                        "someFunction",
-                                        ParameterNode().apply {
-                                            addChild(
-                                                    NamedParamNode(
-                                                            "a",
-                                                        IdentifierNode("param1")
-                                                    )
-                                            )
-                                            addChild(
-                                                    NamedParamNode(
-                                                            "b",
-                                                        NumberNode(123)
-                                                    )
-                                            )
-                                            addChild(
-                                                    NamedParamNode(
-                                                            "c",
-                                                        IdentifierNode("param3")
-                                                    )
-                                            )
-                                        }
-                                )
-                        )
-                    }
-            )
-        }, ast)
     }
-
 
 
     @Test
@@ -136,29 +84,9 @@ class ParserTests {
             this someFunction param1 123 param3
         """.trimIndent()
         val tokens = lexer.lex(text)
-        val ast = ElaraParser(tokens).parse()
-
-        assertEquals(RootNode().apply {
-            addChild(
-                    ExpressionNode().apply {
-                        addChild(
-                            ContextNode("this").apply {
-                                addChild(
-                                        FunctionCallNode(
-                                                "someFunction",
-                                                ParameterNode().apply {
-                                                    addChild(IdentifierNode("param1"))
-                                                    addChild(NumberNode(123))
-                                                    addChild(IdentifierNode("param3"))
-                                                }
-                                        )
-                                )
-                            }
-                        )
-                    }
-            )
-        }, ast)
+        val ast = ElaraParser().parse(TokenStack(tokens))
     }
+
     @Test
     fun `Test Correct Parsing of Function Definition`() {
         val text = """
@@ -167,29 +95,7 @@ class ParserTests {
             }
         """.trimIndent()
         val tokens = lexer.lex(text)
-        val ast = ElaraParser(tokens).parse()
-        print(ast)
-        assertEquals(RootNode().apply {
-            addChild(
-                    ExpressionNode().apply {
-                        addChild(
-                            FunctionNode(
-                                    TypedParameterNode().apply {
-                                        addChild(TypedIdentifierNode("a", null, "Int"))
-                                        addChild(TypedIdentifierNode("b", number(10), null))
-                                    },
-                                    ScopeNode().apply {
-                                        addChild(
-                                                ExpressionNode().apply {
-                                                    addChild(DeclarationNode("c", false, number(5)))
-                                                }
-                                        )
-                                    }
-                            )
-                        )
-                    }
-            )
-        }, ast)
+        val ast = ElaraParser().parse(TokenStack(tokens))
     }
 
     @Test
@@ -202,41 +108,9 @@ class ParserTests {
             }
         """.trimIndent()
         val tokens = lexer.lex(text)
-        val ast = ElaraParser(tokens).parse()
+        val ast = ElaraParser().parse(TokenStack(tokens))
         print(ast)
-        assertEquals(RootNode().apply {
-            addChild(
-                    ExpressionNode().apply {
-                        addChild(
-                            StructNode(
-                                    "Human",
-                                    TypedParameterNode().apply {
-                                        addChild(
-                                                TypedIdentifierNode(
-                                                        "age",
-                                                        number(18),
-                                                        "Int"
-                                                )
-                                        )
-                                        addChild(
-                                                TypedIdentifierNode(
-                                                        "height",
-                                                        number(177)
-                                                )
-                                        )
-                                        addChild(
-                                                TypedIdentifierNode(
-                                                        "speed",
-                                                        null,
-                                                        "Int"
-                                                )
-                                        )
-                                    }
-                            )
-                        )
-                    }
-            )
-        }, ast)
+
     }
 
 
@@ -246,21 +120,10 @@ class ParserTests {
             someStructInstance.someField
         """.trimIndent()
         val tokens = lexer.lex(text)
-        val ast = ElaraParser(tokens).parse()
+        val ast = ElaraParser().parse(TokenStack(tokens))
         print(ast)
-        assertEquals(RootNode().apply {
-            addChild(
-                    ExpressionNode().apply {
-                        addChild(
-                            ContextNode(
-                                    "someStructInstance"
-                            ).apply { addChild(IdentifierNode("someField")) }
-                        )
-                    }
-            )
-        }, ast)
 
-        val a = 5+6.toLong()
+        val a = 5 + 6.toLong()
     }
 
     @Test
@@ -269,52 +132,18 @@ class ParserTests {
             someStructInstance.someField = 5
         """.trimIndent()
         val tokens = lexer.lex(text)
-        val ast = ElaraParser(tokens).parse()
+        val ast = ElaraParser().parse(TokenStack(tokens))
         print(ast)
-        assertEquals(RootNode().apply {
-            addChild(
-                    ExpressionNode().apply {
-                        addChild(
-                            ContextNode(
-                                    "someStructInstance"
-                            ).apply {
-                                addChild(AssignmentNode("someField", NumberNode(5)))
-                            }
-                        )
-                    }
-            )
-        }, ast)
     }
+
     @Test
     fun `Test Correct Parsing of Struct function Call`() {
         val text = """
             someStructInstance.someFunction(15)
         """.trimIndent()
         val tokens = lexer.lex(text)
-        val ast = ElaraParser(tokens).parse()
+        val ast = ElaraParser().parse(TokenStack(tokens))
         print(ast)
-        assertEquals(RootNode().apply {
-            addChild(
-                    ExpressionNode().apply {
-                        addChild(
-                            ContextNode(
-                                    "someStructInstance"
-                            ).apply {
-                                addChild(
-                                        FunctionCallNode(
-                                                "someFunction",
-                                                ParameterNode().apply {
-                                                    addChild(
-                                                            NumberNode(15)
-                                                    )
-                                                }
-                                        )
-                                )
-                            }
-                        )
-                    }
-            )
-        }, ast)
     }
 
     @Test
@@ -324,41 +153,8 @@ class ParserTests {
             else => ? print "b"
         """.trimIndent()
         val tokens = lexer.lex(text)
-        val ast = ElaraParser(tokens).parse()
+        val ast = ElaraParser().parse(TokenStack(tokens))
         print(ast)
-        assertEquals(RootNode().apply {
-            addChild(
-                    ExpressionNode().apply {
-                        addChild(
-                                ConditionalNode(
-                                        ExpressionNode().apply {
-                                            addChild(
-                                            FunctionCallNode("test", ParameterNode())
-                                            )
-                                        },
-                                        ExpressionNode().apply {
-                                            addChild(
-                                                    ScopeNode().apply {
-                                                        addChild(
-                                                                ExpressionNode().apply {
-                                                                    addChild(
-                                                                        ContextNode("this").apply {
-                                                                            addChild(
-                                                                                    FunctionCallNode("print", ParameterNode().apply { addChild(IdentifierNode("a")) })
-                                                                            )
-                                                                        }
-                                                                    )
-                                                                }
-                                                        )
-                                                    }
-                                            )
-                                        },
-                                        null
-                                )
-                        )
-                    }
-            )
-        }, ast)
     }
 
     @Test
@@ -371,53 +167,8 @@ class ParserTests {
             }
         """.trimIndent()
         val tokens = lexer.lex(text)
-        val ast = ElaraParser(tokens).parse()
+        val ast = ElaraParser().parse(TokenStack(tokens))
         print(ast)
-        assertEquals(RootNode().apply {
-            addChild(
-                    ExpressionNode().apply {
-                        addChild(
-                                ConditionalNode(
-                                        ExpressionNode().apply {
-                                            addChild(
-                                                    FunctionCallNode("test", ParameterNode())
-                                            )
-                                        },
-                                        ExpressionNode().apply {
-                                            addChild(
-                                                    ScopeNode().apply {
-                                                        addChild(
-                                                                ExpressionNode().apply {
-                                                                    addChild(
-                                                                            ContextNode("this").apply {
-                                                                                addChild(
-                                                                                        FunctionCallNode("print", ParameterNode().apply { addChild(IdentifierNode("a")) })
-                                                                                )
-                                                                            }
-                                                                    )
-                                                                }
-                                                        )
-                                                    }
-                                            )
-                                        },
-                                        ScopeNode().apply {
-                                            addChild(
-                                                    ExpressionNode().apply {
-                                                        addChild(
-                                                                ContextNode("this").apply {
-                                                                    addChild(
-                                                                            FunctionCallNode("print", ParameterNode().apply { addChild(IdentifierNode("b")) })
-                                                                    )
-                                                                }
-                                                        )
-                                                    }
-                                            )
-                                        }
-                                )
-                        )
-                    }
-            )
-        }, ast)
     }
 
     @Test
@@ -430,65 +181,8 @@ class ParserTests {
             }
         """.trimIndent()
         val tokens = lexer.lex(text)
-        val ast = ElaraParser(tokens).parse()
-        print(ast)
-        assertEquals(RootNode().apply {
-            addChild(
-                    ExpressionNode().apply {
-                        addChild(
-                                ConditionalNode(
-                                        ExpressionNode().apply {
-                                            addChild(
-                                                    FunctionCallNode("test", ParameterNode())
-                                            )
-                                        },
-                                        ExpressionNode().apply {
-                                            addChild(
-                                                    ScopeNode().apply {
-                                                        addChild(
-                                                                ExpressionNode().apply {
-                                                                    addChild(
-                                                                            ContextNode("this").apply {
-                                                                                addChild(
-                                                                                        FunctionCallNode("print", ParameterNode().apply { addChild(IdentifierNode("a")) })
-                                                                                )
-                                                                            }
-                                                                    )
-                                                                }
-                                                        )
-                                                    }
-                                            )
-                                        },
-                                        ConditionalNode(
-                                                ExpressionNode().apply {
-                                                    addChild(
-                                                            FunctionCallNode("otherTest", ParameterNode())
-                                                    )
-                                                },
-                                                ExpressionNode().apply {
-                                                    addChild(
-                                                            ScopeNode().apply {
-                                                                addChild(
-                                                                        ExpressionNode().apply {
-                                                                            addChild(
-                                                                                    ContextNode("this").apply {
-                                                                                        addChild(
-                                                                                                FunctionCallNode("print", ParameterNode().apply { addChild(IdentifierNode("a")) })
-                                                                                        )
-                                                                                    }
-                                                                            )
-                                                                        }
-                                                                )
-                                                            }
-                                                    )
-                                                },
-                                                null
-                                        )
-                                )
-                        )
-                    }
-            )
-        }, ast)
+//        val ast = ElaraParser(tokens).parse()
+//        print(ast)
     }
 
     @Test
@@ -499,40 +193,10 @@ class ParserTests {
             }
         """.trimIndent()
         val tokens = lexer.lex(text)
-        val ast = ElaraParser(tokens).parse()
-        print(ast)
-        assertEquals(RootNode().apply {
-            addChild(
-                    ExpressionNode().apply {
-                        addChild(
-                                ExtensionNode("Something").apply {
-                                    addChild(
-                                            DeclarationNode(
-                                                    "sayHi",
-                                                    false,
-                                                    ExpressionNode().apply {
-                                                        addChild(
-                                                                ContextNode("this").apply {
-                                                                    addChild(
-                                                                            FunctionCallNode(
-                                                                                    "print",
-                                                                                    ParameterNode().apply {
-                                                                                        addChild(StringNode("hi"))
-                                                                                    }
-                                                                            )
-                                                                    )
-                                                                }
-                                                        )
-                                                    }
-                                            )
-                                    )
-                                }
-                        )
-                    }
-            )
-        }, ast)
-    }
+//        val ast = ElaraParser(tokens).parse()
+//        print(ast)
 
+    }
 
 
     @Test
@@ -541,62 +205,9 @@ class ParserTests {
             let expr = (a + b + c) + b * c + a + (b * c)
         """.trimIndent()
         val tokens = lexer.lex(text)
-        val ast = ElaraParser(tokens).parse()
-        print(ast)
-        assertEquals(RootNode().apply {
-            addChild(
-                    ExpressionNode().apply {
-                        addChild(
-                                DeclarationNode(
-                                        "expr",
-                                        false,
-                                        ExpressionNode().apply {
-                                            addChild(
-                                                ExpressionNode().apply {
-                                                    addChild(IdentifierNode("a"))
-                                                    addChild(
-                                                            ArithmeticNode().apply {
-                                                                addChild(LastArithTermNode())
-                                                                addChild(ArithTermNode(false).apply {
-                                                                    addChild(IdentifierNode("b"))
-                                                                })
-                                                                addChild(ArithTermNode(false).apply {
-                                                                    addChild(IdentifierNode("c"))
-                                                                })
-                                                            }
-                                                    )
-                                                })
-                                                    addChild(
-                                                            ArithmeticNode().apply {
-                                                                addChild(LastArithTermNode())
-                                                                addChild(ArithTermNode(false).apply {
-                                                                    addChild(IdentifierNode("b"))
-                                                                    addChild(MultiplicationNode(IdentifierNode("c")))
-                                                                })
-                                                                addChild(ArithTermNode(false).apply {
-                                                                    addChild(IdentifierNode("a"))
-                                                                })
-                                                                addChild(ArithTermNode(false).apply {
-                                                                    addChild(ExpressionNode().apply {
-                                                                        addChild(IdentifierNode("b"))
-                                                                        addChild(ArithmeticNode().apply {
-                                                                            addChild(LastArithTermNode().apply {
-                                                                                addChild(MultiplicationNode(IdentifierNode("c")))
-                                                                            })
-                                                                        })
+//        val ast = ElaraParser(tokens).parse()
+//        print(ast)
 
-                                                                    })
-                                                                })
-                                                            }
-                                                    )
-
-
-                                        }
-                                )
-                        )
-                    }
-            )
-        }, ast)
     }
 
     @Test
@@ -605,57 +216,18 @@ class ParserTests {
             a && (b == c) || (a ^ b ^ c)
         """.trimIndent()
         val tokens = lexer.lex(text)
-        val ast = ElaraParser(tokens).parse()
-        print(ast)
-        assertEquals(RootNode().apply {
-            addChild(
-                    ExpressionNode().apply {
-                        addChild(IdentifierNode("a"))
-                        addChild(
-                                BooleanExprNode(TokenType.AND).apply {
-                                    addChild(
-                                            ExpressionNode().apply {
-                                                addChild(IdentifierNode("b"))
-                                                addChild(
-                                                        BooleanExprNode(TokenType.EQUALS).apply {
-                                                            addChild(
-                                                                    ExpressionNode().apply {
-                                                                        addChild(IdentifierNode("c"))
+//        val ast = ElaraParser(tokens).parse()
+//        print(ast)
 
-                                                                    }
-                                                            )
-                                                        }
-                                                )
-                                            }
-                                    )
-                                    addChild(
-                                            BooleanExprNode(TokenType.OR).apply {
-                                                addChild(
-                                                        ExpressionNode().apply {
-                                                            addChild(IdentifierNode("a"))
-                                                            addChild(
-                                                                    BooleanExprNode(TokenType.XOR).apply {
-                                                                        addChild(IdentifierNode("b"))
-                                                                    }
-                                                            )
-                                                            addChild(
-                                                                    BooleanExprNode(TokenType.XOR).apply {
-                                                                        addChild(IdentifierNode("c"))
-                                                                    }
-                                                            )
-                                                        }
-                                                )
-                                            }
-                                    )
-                                }
-                        )
-                    }
-            )
-        }, ast)
     }
 
+    @Test
+    fun `Test Correct Parsing of Function Call without parentheses`() {
+        val text = """
+            someFunction param1 123
+        """.trimIndent()
+        val tokens = lexer.lex(text)
+//        val ast = ElaraParser(tokens).parse()
 
-    private fun number(num: Long): ExpressionNode {
-        return ExpressionNode().apply { addChild(NumberNode(num)) }
     }
 }

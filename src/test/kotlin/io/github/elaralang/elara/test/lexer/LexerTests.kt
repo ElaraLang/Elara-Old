@@ -40,16 +40,16 @@ class LexerTests {
     @Test
     fun `Test Simple Lexer Output With Factorial Function`() {
         val testInput = """
-        let fact = (Int num) => {
+        let fact = :(Int num) => {
             if num == 1 => return 1
             return fact(num - 1)
         }
         """.trimIndent()
 
         val expectedTokenStream = listOf(
-            LET, IDENTIFIER, DEF, LPAREN, IDENTIFIER, IDENTIFIER, RPAREN, ARROW, LBRACE, NEWLINE,
+            LET, IDENTIFIER, DEF, COLON, LPAREN, IDENTIFIER, IDENTIFIER, RPAREN, ARROW, LBRACE, NEWLINE,
             IF, IDENTIFIER, EQUALS, NUMBER, ARROW, RETURN, NUMBER, NEWLINE,
-            RETURN, IDENTIFIER, LPAREN, IDENTIFIER, OPERATOR, NUMBER, RPAREN, NEWLINE,
+            RETURN, IDENTIFIER, LPAREN, IDENTIFIER, SUBTRACT, NUMBER, RPAREN, NEWLINE,
             RBRACE, EOF
         )
 
@@ -70,7 +70,7 @@ class LexerTests {
 
         val expectedTokenStream = listOf (
             EXTEND, IDENTIFIER, LBRACE, NEWLINE,
-            LET, IDENTIFIER, DEF, LPAREN, IDENTIFIER, IDENTIFIER, RPAREN, ARROW, IDENTIFIER, IDENTIFIER, IDENTIFIER, EQUALS, NUMBER, NEWLINE,
+            LET, IDENTIFIER, DEF, LPAREN, IDENTIFIER, IDENTIFIER, RPAREN, ARROW, IDENTIFIER, REMAINDER, IDENTIFIER, EQUALS, NUMBER, NEWLINE,
             RBRACE, EOF
         )
 

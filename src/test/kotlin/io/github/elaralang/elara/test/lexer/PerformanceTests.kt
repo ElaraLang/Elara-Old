@@ -1,14 +1,8 @@
 package io.github.elaralang.elara.test.lexer
 
 import io.github.elaralang.elara.lexer.ElaraLexer
-import io.github.elaralang.elara.parser.DeclarationNode
-import io.github.elaralang.elara.parser.ElaraParser
-import io.github.elaralang.elara.parser.ExpressionNode
-import io.github.elaralang.elara.parser.RootNode
 import org.junit.jupiter.api.Test
-import kotlin.system.measureNanoTime
 import kotlin.system.measureTimeMillis
-import kotlin.test.assertEquals
 
 class PerformanceTests {
     private val lexer = ElaraLexer()

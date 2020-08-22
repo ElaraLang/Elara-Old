@@ -3,7 +3,7 @@ package io.github.elaralang.elara.evaluator
 import io.github.elaralang.elara.exceptions.elaraRuntimeException
 import io.github.elaralang.elara.exceptions.invalidType
 import io.github.elaralang.elara.exceptions.parserException
-import io.github.elaralang.elara.parserrework.*
+import io.github.elaralang.elara.parser.*
 
 class ElaraEvaluator: ExpressionVisitor<Any>, StatementVisitor<Unit> {
 

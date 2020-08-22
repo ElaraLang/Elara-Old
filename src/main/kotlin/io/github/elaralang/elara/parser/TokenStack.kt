@@ -1,13 +1,11 @@
-package io.github.elaralang.elara.parserrework
+package io.github.elaralang.elara.parser
 
-import io.github.elaralang.elara.exceptions.invalidSyntax
 import io.github.elaralang.elara.exceptions.unwindWithError
 import io.github.elaralang.elara.lexer.Token
 import io.github.elaralang.elara.lexer.TokenType
-
 import java.util.*
 
-class TokenStack(list: List<Token>): Stack<Token>() {
+class TokenStack(list: List<Token>) : Stack<Token>() {
     init {
         cleanAndReverseFrom(list)
     }
@@ -16,7 +14,7 @@ class TokenStack(list: List<Token>): Stack<Token>() {
         var isLastNewLine = false
         for (token in list) {
             if (isLastNewLine && token.type == TokenType.NEWLINE) continue
-            if (!isLastNewLine && token.type == TokenType.EOF) push(Token(TokenType.NEWLINE,"\n"))
+            if (!isLastNewLine && token.type == TokenType.EOF) push(Token(TokenType.NEWLINE, "\n"))
             isLastNewLine = token.type == TokenType.NEWLINE
             push(token)
 
@@ -40,6 +38,7 @@ class TokenStack(list: List<Token>): Stack<Token>() {
             true
         } else false
     }
+
     infix fun isAt(type: TokenType): Boolean {
         return peek().type == type
     }

@@ -1,4 +1,4 @@
-package io.github.elaralang.elara.parserrework
+package io.github.elaralang.elara.parser
 
 import io.github.elaralang.elara.lexer.Token
 
