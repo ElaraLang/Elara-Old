@@ -6,16 +6,18 @@ class Environment(val parent: Environment? = null) {
 
     private data class EnvironmentVariable(val type: String, var value: Any)
 
-    fun defineVariable( identifier: String, type: String, value: Any) {
+    fun defineVariable(identifier: String, type: String, value: Any) {
         bindings[identifier] = EnvironmentVariable(type, value)
     }
-    fun assign( identifier: String, value: Any) {
+
+    fun assign(identifier: String, value: Any) {
         bindings[identifier]?.value = value
     }
 
     operator fun get(identifier: String): Any? {
         return bindings[identifier]?.value ?: parent?.get(identifier)
     }
+
     fun typeOf(identifier: String): String? {
         return bindings[identifier]?.type
     }
