@@ -24,7 +24,7 @@ class StructDefinitionStatement(val identifier: String, val member: List<StructM
     }
 }
 
-class VariableDeclarationStatement(val mutable: Boolean, val identifier: String, val value: Expression): Statement() {
+class VariableDeclarationStatement(val mutable: Boolean, val identifier: String, val value: Expression, val type: String? = null): Statement() {
     override fun accept(elaraEvaluator: ElaraEvaluator): Any {
         return elaraEvaluator.visitVariableDeclarationStatement(this)
     }

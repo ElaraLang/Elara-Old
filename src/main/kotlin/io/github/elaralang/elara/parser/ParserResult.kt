@@ -128,9 +128,11 @@ class ParserResult(val stack: TokenStack) {
         stack expect TokenType.LET
         val mutable = stack popIf TokenType.MUT
         val identifier = (stack expect TokenType.IDENTIFIER).text
+        val type = if (stack popIf TokenType.COLON) (stack expect TokenType.IDENTIFIER).text else "null"
+
         stack expect TokenType.DEF
         val expr = parseExpression()
-        return VariableDeclarationStatement(mutable, identifier, expr)
+        return VariableDeclarationStatement(mutable, identifier, expr, type)
     }
 
     private fun parseExpression(): Expression {
