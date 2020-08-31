@@ -1,5 +1,7 @@
 plugins {
-    id 'org.jetbrains.kotlin.jvm' version '1.4.0-rc'
+    id 'org.jetbrains.kotlin.jvm' version '1.4.0'
+    id 'application'
+    id "com.github.johnrengelman.shadow" version "6.0.0"
 }
 group = 'io.github.elaralang'
 version = '0.0.1'
@@ -26,4 +28,9 @@ compileKotlin {
     kotlinOptions {
         jvmTarget = "1.8"
     }
+}
+
+
+shadowJar {
+    mainClassName = 'io.github.elaralang.elara.RunnerKt'
 }
