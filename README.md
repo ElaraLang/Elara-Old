@@ -112,7 +112,23 @@ from here we can do `somePerson.celebrate-birthday()` as if it was a method.
 
 The `extend` syntax works with any type and can be done from any file
 
+#### Inheritance
+The `extend` syntax effectively adds inheritance too:
 
+```
+struct Person {
+    //blah
+}
+extend Person {
+    struct Student {
+        Topic major
+    }
+}
+```
+
+This is not true "inheritance". Instead, the `Student` struct will copy all the properties of `Person`.
+Because the type system is contract based (that is, type `B` can be assigned to type `A` if it has the same contract in its members),
+this is effectively inheritance - we can use an instance of `Student` wherever we use a `Person`.
 ### Type System
 
 Elara features a simple, linear type system. 
