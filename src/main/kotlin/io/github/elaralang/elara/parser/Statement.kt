@@ -15,6 +15,15 @@ class ExpressionStatement(val expression: Expression): Statement() {
         return "(ExpressionStatement [$expression])"
     }
 }
+class StructDefinitionStatement(val identifier: String, val member: List<StructMember>): Statement() {
+    override fun accept(elaraEvaluator: ElaraEvaluator): Any {
+        return elaraEvaluator.visitStructDefinition(this)
+    }
+    override fun toString(): String {
+        return "(StructDefinition name=$identifier [$member])"
+    }
+}
+
 class VariableDeclarationStatement(val mutable: Boolean, val identifier: String, val value: Expression): Statement() {
     override fun accept(elaraEvaluator: ElaraEvaluator): Any {
         return elaraEvaluator.visitVariableDeclarationStatement(this)
@@ -48,7 +57,14 @@ class WhileStatement(val condition: Expression, val body: Statement): Statement(
         return "(while ($condition) => $body)"
     }
 }
-
+class ExtendStatement(val id: String, val body: Statement): Statement() {
+    override fun accept(elaraEvaluator: ElaraEvaluator): Any {
+        return elaraEvaluator.visitExtendStatement(this)
+    }
+    override fun toString(): String {
+        return "(Extend ($id) => $body)"
+    }
+}
 
 interface StatementVisitor<T> {
     fun visitExpressionStatement(exprStmt: ExpressionStatement): Any
@@ -56,4 +72,8 @@ interface StatementVisitor<T> {
     fun visitBlockStatement(exprStmt: BlockStatement)
     fun visitIfElseStatement(ifElseStmt: IfElseStatement)
     fun visitWhileStatement(whileStmt: WhileStatement)
+    fun visitStructDefinition(structDef: StructDefinitionStatement)
+    fun visitExtendStatement(extendStmt: ExtendStatement)
 }
+
+

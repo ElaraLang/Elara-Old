@@ -10,6 +10,10 @@ class ElaraParser {
         return ParserResult(TokenStack(tokenList)).parse()
     }
 
+    fun parse(tokenStack: TokenStack): List<Statement> {
+        return ParserResult(tokenStack).parse()
+    }
+
 }
 
 

@@ -2,6 +2,7 @@ package io.github.elaralang.elara.test.parser
 
 import io.github.elaralang.elara.lexer.ElaraLexer
 import io.github.elaralang.elara.parser.*
+import org.intellij.lang.annotations.Identifier
 import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
 
@@ -19,11 +20,13 @@ class ParserTests {
         """.trimIndent()
         val tokens = lexer.lex(text)
         val ast = ElaraParser().parse(TokenStack(tokens))
-
+        println(ast)
+        val expectation = mutableListOf<Statement>(
+            VariableDeclarationStatement(false, "a", Literal(3))
+        )
+        println(expectation)
         assertEquals(
-            listOf(
-                VariableDeclarationStatement(false, "a", Literal(3))
-            ), ast
+            expectation.toString(), ast.toString()
         )
     }
 
@@ -35,12 +38,14 @@ class ParserTests {
         """.trimIndent()
         val tokens = lexer.lex(text)
         val ast = ElaraParser().parse(TokenStack(tokens))
-
+        println(ast)
+        val expectation = mutableListOf<Statement>(
+            VariableDeclarationStatement(true, "a", Literal(3)),
+            ExpressionStatement(Assignment("a", Literal(4)))
+        )
+        println(expectation)
         assertEquals(
-            listOf(
-                VariableDeclarationStatement(true, "a", Literal(3)),
-                ExpressionStatement(Assignment("a", Literal(4)))
-            ), ast
+            expectation.toString(), ast.toString()
         )
     }
 
@@ -51,18 +56,24 @@ class ParserTests {
         """.trimIndent()
         val tokens = lexer.lex(text)
         val ast = ElaraParser().parse(TokenStack(tokens))
-
-        assertEquals(
-            listOf(
-                ExpressionStatement(
-                    FunctionInvocation(
-                        ElaraUnit, listOf(
-                            Variable("param1"), Literal(123), Variable("param3")
-                        )
+        println(ast)
+        val expectation = mutableListOf<Statement>(
+            ExpressionStatement(
+                FunctionInvocation(
+                    Variable("someFunction"),
+                    listOf<Expression> (
+                        Variable("param1"),
+                        Literal(123),
+                        Variable("param3")
                     )
                 )
-            ), ast
+            )
         )
+        println(expectation)
+        assertEquals(
+            expectation.toString(), ast.toString()
+        )
+
     }
 
 
@@ -73,7 +84,24 @@ class ParserTests {
         """.trimIndent()
         val tokens = lexer.lex(text)
         val ast = ElaraParser().parse(TokenStack(tokens))
-        print(ast)
+        println(ast)
+        val expectation = mutableListOf<Statement>(
+            ExpressionStatement(
+                FunctionInvocation(
+                    Variable("someFunction"),
+                    listOf<Expression> (
+                        Assignment("a", Variable("param1")),
+                        Assignment("b", Literal(123)),
+                        Assignment("c", Variable("param3"))
+                    )
+                )
+            )
+        )
+        println(expectation)
+        assertEquals(
+            expectation.toString(), ast.toString()
+        )
+
     }
 
 
@@ -83,7 +111,24 @@ class ParserTests {
             this someFunction param1 123 param3
         """.trimIndent()
         val tokens = lexer.lex(text)
-        ElaraParser().parse(TokenStack(tokens))
+        val ast = ElaraParser().parse(TokenStack(tokens))
+        println(ast)
+        val expectation = mutableListOf<Statement>(
+            ExpressionStatement(
+                FunctionInvocation(
+                    ContextExpression(Variable("this"), "someFunction"),
+                    listOf<Expression> (
+                        Variable("param1"),
+                        Literal(123),
+                        Variable("param3")
+                    )
+                )
+            )
+        )
+        println(expectation)
+        assertEquals(
+            expectation.toString(), ast.toString()
+        )
     }
 
     @Test
@@ -94,7 +139,32 @@ class ParserTests {
             }
         """.trimIndent()
         val tokens = lexer.lex(text)
-        ElaraParser().parse(TokenStack(tokens))
+        val ast = ElaraParser().parse(TokenStack(tokens))
+        println(ast)
+        val expectation = mutableListOf<Statement>(
+            ExpressionStatement(
+                FunctionDefinition(
+                    "ElaraUnit",
+                    listOf<FunctionArgument>(
+                        FunctionArgument("Int", "a", null),
+                        FunctionArgument(null, "b", Literal(10))
+                    ),
+                    BlockStatement(
+                        listOf(
+                            VariableDeclarationStatement(
+                                false,
+                                "c",
+                                Literal(5)
+                            )
+                        )
+                    )
+                )
+            )
+        )
+        println(expectation)
+        assertEquals(
+            expectation.toString(), ast.toString()
+        )
     }
 
     @Test
@@ -108,7 +178,21 @@ class ParserTests {
         """.trimIndent()
         val tokens = lexer.lex(text)
         val ast = ElaraParser().parse(TokenStack(tokens))
-        print(ast)
+        println(ast)
+        val expectation = mutableListOf<Statement>(
+            StructDefinitionStatement(
+                "Human",
+                listOf<StructMember>(
+                    StructMember("Int", "age", Literal(18)),
+                    StructMember(null, "height", Literal(177)),
+                    StructMember("Int", "speed", null)
+                )
+            )
+        )
+        println(expectation)
+        assertEquals(
+            expectation.toString(), ast.toString()
+        )
 
     }
 
@@ -119,7 +203,20 @@ class ParserTests {
             someStructInstance.someField
         """.trimIndent()
         val tokens = lexer.lex(text)
-        ElaraParser().parse(TokenStack(tokens))
+        val ast = ElaraParser().parse(TokenStack(tokens))
+        println(ast)
+        val expectation = mutableListOf<Statement>(
+            ExpressionStatement(
+                ContextExpression(
+                    Variable("someStructInstance"),
+                    "someField"
+                )
+            )
+        )
+        println(expectation)
+        assertEquals(
+            expectation.toString(), ast.toString()
+        )
     }
 
     @Test
@@ -129,7 +226,20 @@ class ParserTests {
         """.trimIndent()
         val tokens = lexer.lex(text)
         val ast = ElaraParser().parse(TokenStack(tokens))
-        print(ast)
+        println(ast)
+        val expectation = mutableListOf<Statement>(
+            ExpressionStatement(
+                ContextualAssignment(
+                    Variable("someStructInstance"),
+                    "someField",
+                    Literal(5)
+                )
+            )
+        )
+        println(expectation)
+        assertEquals(
+            expectation.toString(), ast.toString()
+        )
     }
 
     @Test
@@ -139,18 +249,69 @@ class ParserTests {
         """.trimIndent()
         val tokens = lexer.lex(text)
         val ast = ElaraParser().parse(TokenStack(tokens))
-        print(ast)
+        println(ast)
+        val expectation = mutableListOf<Statement>(
+            ExpressionStatement(
+                FunctionInvocation(
+                    ContextExpression(
+                        Variable("someStructInstance"),
+                        "someFunction"
+                    ),
+                    listOf<Expression>(
+                        Literal(15)
+                    )
+                )
+            )
+        )
+        println(expectation)
+        assertEquals(
+            expectation.toString(), ast.toString()
+        )
     }
 
     @Test
     fun `Test Correct Parsing of If expressions`() {
         val text = """
-            if test() => ? print "a"
-            else => ? print "b"
+            if test() => this print "a"
+            else => this print "b"
         """.trimIndent()
         val tokens = lexer.lex(text)
         val ast = ElaraParser().parse(TokenStack(tokens))
-        print(ast)
+        println(ast)
+        val expectation = mutableListOf<Statement>(
+            IfElseStatement(
+                FunctionInvocation(
+                    Variable("test"),
+                    listOf()
+                ),
+                ExpressionStatement(
+                    FunctionInvocation(
+                        ContextExpression(
+                            Variable("this"),
+                            "print"
+                        ),
+                        listOf<Expression>(
+                            Literal<String>("a")
+                        )
+                    )
+                ),
+                ExpressionStatement(
+                    FunctionInvocation(
+                        ContextExpression(
+                            Variable("this"),
+                            "print"
+                        ),
+                        listOf<Expression>(
+                            Literal<String>("b")
+                        )
+                    )
+                )
+            )
+        )
+        println(expectation)
+        assertEquals(
+            expectation.toString(), ast.toString()
+        )
     }
 
     @Test
@@ -164,7 +325,49 @@ class ParserTests {
         """.trimIndent()
         val tokens = lexer.lex(text)
         val ast = ElaraParser().parse(TokenStack(tokens))
-        print(ast)
+        println(ast)
+        val expectation = mutableListOf<Statement>(
+            IfElseStatement(
+                FunctionInvocation(
+                    Variable("test"),
+                    listOf()
+                ),
+                BlockStatement(
+                    listOf(
+                        ExpressionStatement(
+                            FunctionInvocation(
+                                ContextExpression(
+                                    Variable("this"),
+                                    "print"
+                                ),
+                                listOf<Expression>(
+                                    Variable("a")
+                                )
+                            )
+                        )
+                    )
+                ),
+                BlockStatement(
+                    listOf(
+                        ExpressionStatement(
+                            FunctionInvocation(
+                                ContextExpression(
+                                    Variable("this"),
+                                    "print"
+                                ),
+                                listOf<Expression>(
+                                    Variable("b")
+                                )
+                            )
+                        )
+                    )
+                )
+            )
+        )
+        println(expectation)
+        assertEquals(
+            expectation.toString(), ast.toString()
+        )
     }
 
     @Test
@@ -176,9 +379,58 @@ class ParserTests {
                 this print b
             }
         """.trimIndent()
-        lexer.lex(text)
-//        val ast = ElaraParser(tokens).parse()
-//        print(ast)
+        val tokens = lexer.lex(text)
+        val ast = ElaraParser().parse(TokenStack(tokens))
+        println(ast)
+        val expectation = mutableListOf<Statement>(
+            IfElseStatement(
+                FunctionInvocation(
+                    Variable("test"),
+                    listOf()
+                ),
+                BlockStatement(
+                    listOf(
+                        ExpressionStatement(
+                            FunctionInvocation(
+                                ContextExpression(
+                                    Variable("this"),
+                                    "print"
+                                ),
+                                listOf<Expression>(
+                                    Variable("a")
+                                )
+                            )
+                        )
+                    )
+                ),
+                IfElseStatement(
+                    FunctionInvocation(
+                        Variable("otherTest"),
+                        listOf()
+                    ),
+                    BlockStatement(
+                        listOf(
+                            ExpressionStatement(
+                                FunctionInvocation(
+                                    ContextExpression(
+                                        Variable("this"),
+                                        "print"
+                                    ),
+                                    listOf<Expression>(
+                                        Variable("b")
+                                    )
+                                )
+                            )
+                        )
+                    ),
+                    null
+                )
+            )
+        )
+        println(expectation)
+        assertEquals(
+            expectation.toString(), ast.toString()
+        )
     }
 
     @Test
@@ -188,42 +440,43 @@ class ParserTests {
                 let sayHi = :() => this print "hi"
             }
         """.trimIndent()
-        lexer.lex(text)
-//        val ast = ElaraParser(tokens).parse()
-//        print(ast)
+        val tokens = lexer.lex(text)
+        val ast = ElaraParser().parse(TokenStack(tokens))
+        println(ast)
+        val expectation = mutableListOf<Statement>(
+            ExtendStatement(
+                "Something",
+                BlockStatement(
+                    listOf(
+                        VariableDeclarationStatement(
+                            false,
+                            "sayHi",
+                            FunctionDefinition(
+                                "ElaraUnit",
+                                listOf(),
+                                ExpressionStatement(
+                                    FunctionInvocation(
+                                        ContextExpression(
+                                            Variable("this"),
+                                            "print"
+                                        ),
+                                        listOf(
+                                            Literal("hi")
+                                        )
+                                    )
+                                )
+                            )
+                        )
+                    )
+                )
+            )
+        )
+        println(expectation)
+        assertEquals(
+            expectation.toString(), ast.toString()
+        )
 
     }
 
-
-    @Test
-    fun `Test Correct Parsing of Arithmetic Operations`() {
-        val text = """
-            let expr = (a + b + c) + b * c + a + (b * c)
-        """.trimIndent()
-        lexer.lex(text)
-//        val ast = ElaraParser(tokens).parse()
-//        print(ast)
-
-    }
-
-    @Test
-    fun `Test Correct Parsing of Boolean Expressions`() {
-        val text = """
-            a && (b == c) || (a ^ b ^ c)
-        """.trimIndent()
-        lexer.lex(text)
-//        val ast = ElaraParser(tokens).parse()
-//        print(ast)
-
-    }
-
-    @Test
-    fun `Test Correct Parsing of Function Call without parentheses`() {
-        val text = """
-            someFunction param1 123
-        """.trimIndent()
-        lexer.lex(text)
-//        val ast = ElaraParser(tokens).parse()
-
-    }
+   
 }

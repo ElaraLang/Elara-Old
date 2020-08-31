@@ -34,10 +34,52 @@ class ParserResult(val stack: TokenStack) {
     }
 
     private fun parseStatement(): Statement {
-        if (stack isAt TokenType.WHILE) return parseWhileStatement()
-        if (stack isAt TokenType.IF) return parseIfElseStatement()
-        if (stack isAt TokenType.LBRACE) return parseStatementBlock()
-        return parseExpressionStatement()
+        return when (stack.peek().type) {
+            TokenType.WHILE -> parseWhileStatement()
+            TokenType.IF -> parseIfElseStatement()
+            TokenType.LBRACE -> parseStatementBlock()
+            TokenType.STRUCT -> parseStructDefinition()
+            TokenType.EXTEND -> parseExtendStatement()
+            else -> parseExpressionStatement()
+        }
+    }
+
+    private fun parseExtendStatement(): Statement {
+        stack expect TokenType.EXTEND
+        val id = (stack expect TokenType.IDENTIFIER).text
+        val statement = parseStatement()
+        return ExtendStatement(id, statement)
+    }
+
+    private fun parseStructDefinition(): Statement {
+        fun parseStructMembers(): List<StructMember> {
+            val args = mutableListOf<StructMember>()
+            if (stack isAt TokenType.RBRACE) return args
+            do {
+                stack.cleanTop()
+                if (stack isAt  TokenType.RBRACE) break;
+                val first = (stack expect TokenType.IDENTIFIER)
+                val identifier = if (stack isAt TokenType.IDENTIFIER) {
+                    (stack expect TokenType.IDENTIFIER).text
+                } else null
+                val value = if (stack popIf TokenType.DEF) {
+                    parseExpression()
+                } else null
+                if (identifier == null && value == null) throw unwindWithError(first, "Invalid argument")
+                if (identifier == null && value != null) {
+                    args.add(StructMember(null, first.text, value))
+                } else if (identifier != null) {
+                    args.add(StructMember(first.text, identifier, value))
+                } else throw unwindWithError(first, "Invalid struct member")
+            } while (stack popIf TokenType.NEWLINE)
+            return args
+        }
+        stack expect TokenType.STRUCT
+        val id = stack expect TokenType.IDENTIFIER
+        stack expect TokenType.LBRACE
+        val members = parseStructMembers()
+        stack expect TokenType.RBRACE
+        return StructDefinitionStatement(id.text, members)
     }
 
     private fun parseWhileStatement(): WhileStatement {
@@ -59,6 +101,7 @@ class ParserResult(val stack: TokenStack) {
             stack.cleanTop()
             parseStatement()
         } else null
+        if (stack isAt TokenType.EOF) stack.push(Token(TokenType.NEWLINE, ""))
         return IfElseStatement(condition, mainBranch, elseBranch)
     }
 
@@ -101,6 +144,8 @@ class ParserResult(val stack: TokenStack) {
             val rhs = parseOr()
             if (lhs is Variable) {
                 return Assignment(lhs.identifier, rhs)
+            }else if (lhs is ContextExpression) {
+                return ContextualAssignment(lhs.context, lhs.identifier, rhs)
             }
             throw unwindWithError(def, "Assignment Left-Hand-Side invalid!")
         }
@@ -192,6 +237,19 @@ class ParserResult(val stack: TokenStack) {
         }
 
         var expr = parseFunctionDefinition()
+        while (true) expr = when (stack.peek().type) {
+            TokenType.LPAREN -> {
+                stack.pop()
+                parseInvocationWithParameters(expr)
+            }
+            TokenType.DOT -> {
+                stack.pop()
+                ContextExpression(expr, stack.pop().text)
+            }
+            else -> {
+                break
+            }
+        }
         while (stack popIf TokenType.LPAREN) {
             expr = parseInvocationWithParameters(expr)
         }
@@ -220,14 +278,14 @@ class ParserResult(val stack: TokenStack) {
             return args
         }
 
-        val type = if (stack isAt TokenType.COLON) ElaraUnit else parsePrimary()
+        val type = if (stack isAt TokenType.COLON) Variable("ElaraUnit") else parsePrimary()
         if (stack popIf TokenType.COLON) {
             stack expect TokenType.LPAREN
             val args = parseFunctionArguments()
             stack expect TokenType.RPAREN
             stack expect TokenType.ARROW
             val body = parseStatement()
-            return FunctionDefinition(type, args, body)
+            return FunctionDefinition((type as Variable).identifier, args, body)
         }
         return type
     }
@@ -243,8 +301,22 @@ class ParserResult(val stack: TokenStack) {
                 return if (value.contains("(\\.)".toRegex()) || value.endsWith("D")) Literal(value.toDouble())
                 else Literal(value.toLong())
             }
-            TokenType.STRING -> Literal(stack.pop().text)
-            TokenType.IDENTIFIER -> Variable(stack.pop().text)
+            TokenType.STRING -> {
+                val str = stack.pop().text;
+                Literal(str.substring(1, str.length - 1))
+            }
+            TokenType.IDENTIFIER -> {
+                val v = stack.pop().text
+                if (stack.peek().type == TokenType.IDENTIFIER) {
+                    // Infix function
+                    val functionName = stack.pop().text;
+                    val args = mutableListOf<Expression>()
+                    while (stack isNotAt TokenType.NEWLINE) {
+                        args.add(parseExpression())
+                    }
+                    FunctionInvocation(ContextExpression(Variable(v),functionName), args)
+                } else Variable(v)
+            }
             TokenType.LPAREN -> {
                 stack expect TokenType.LPAREN
                 val expr = parseExpression()
@@ -265,6 +337,7 @@ class ParserResult(val stack: TokenStack) {
 }
 
 data class FunctionArgument(val type: String?, val identifier: String, val default: Any?)
+data class StructMember(val type: String?, val identifier: String, val default: Any?)
 
 
 

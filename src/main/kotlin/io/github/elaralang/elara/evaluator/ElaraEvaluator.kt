@@ -141,5 +141,21 @@ class ElaraEvaluator: ExpressionVisitor<Any>, StatementVisitor<Unit> {
         TODO("Define function type")
     }
 
+    override fun visitStructDefinition(structDef: StructDefinitionStatement) {
+        TODO("Not yet implemented")
+    }
+
+    override fun visitContextExpression(contextExpr: ContextExpression): Any {
+        TODO("Not yet implemented")
+    }
+
+    override fun visitContextualAssignment(contextualAssign: ContextualAssignment): Any {
+        TODO("Not yet implemented")
+    }
+
+    override fun visitExtendStatement(extendStmt: ExtendStatement) {
+        TODO("Not yet implemented")
+    }
+
 
 }

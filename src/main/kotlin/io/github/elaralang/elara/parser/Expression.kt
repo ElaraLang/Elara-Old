@@ -15,7 +15,7 @@ class Operation(token: Token){
         return "Operator($op)"
     }
 }
-class BinaryExpression(val lhs: Expression, val op: Operation, val rhs: Expression): Expression() {
+data class BinaryExpression(val lhs: Expression, val op: Operation, val rhs: Expression): Expression() {
     override fun accept(elaraEvaluator: ElaraEvaluator): Any {
         return elaraEvaluator.visitBinaryExpr(this)
     }
@@ -24,7 +24,7 @@ class BinaryExpression(val lhs: Expression, val op: Operation, val rhs: Expressi
         return "($lhs : ${op.op.name} : $rhs)"
     }
 }
-class UnaryExpression(val op: Operation, val rhs: Expression): Expression() {
+data class UnaryExpression(val op: Operation, val rhs: Expression): Expression() {
     override fun accept(elaraEvaluator: ElaraEvaluator): Any {
         return elaraEvaluator.visitUnaryExpr(this)
     }
@@ -79,6 +79,15 @@ class Assignment(val identifier: String, val value: Expression): Expression()  {
         return "(Assignment [$identifier] = [$value])"
     }
 }
+class ContextualAssignment(val context: Expression, val identifier: String, val value: Expression): Expression()  {
+    override fun accept(elaraEvaluator: ElaraEvaluator): Any {
+        return elaraEvaluator.visitContextualAssignment(this)
+    }
+
+    override fun toString(): String {
+        return "(ContextualAssignment [$context].[$identifier] = [$value])"
+    }
+}
 class FunctionInvocation(val invoker: Expression, val parameters: List<Expression>): Expression()  {
     override fun accept(elaraEvaluator: ElaraEvaluator): Any {
         return elaraEvaluator.visitInvocation(this)
@@ -88,13 +97,22 @@ class FunctionInvocation(val invoker: Expression, val parameters: List<Expressio
         return "([$invoker] FunctionInvocation => [$parameters])"
     }
 }
-class FunctionDefinition(val returnType: Expression, val arguments: List<FunctionArgument>, val body: Statement): Expression()  {
+class FunctionDefinition(val returnType: String, val arguments: List<FunctionArgument>, val body: Statement): Expression()  {
     override fun accept(elaraEvaluator: ElaraEvaluator): Any {
         return elaraEvaluator.visitFunctionDefinition(this)
     }
 
     override fun toString(): String {
         return "([$returnType] FunctionDefinition [$arguments] => { $body })"
+    }
+}
+class ContextExpression(val context: Expression, val identifier: String): Expression() {
+    override fun accept(elaraEvaluator: ElaraEvaluator): Any {
+        return elaraEvaluator.visitContextExpression(this)
+    }
+
+    override fun toString(): String {
+        return "(ContextExpression [$context] . [$identifier])"
     }
 }
 
@@ -118,4 +136,6 @@ interface ExpressionVisitor<T> {
     fun visitAssignment(assignment: Assignment): T
     fun visitInvocation(invoke: FunctionInvocation): T
     fun visitFunctionDefinition(funcDef: FunctionDefinition): T
+    fun visitContextExpression(contextExpr: ContextExpression): T
+    fun visitContextualAssignment(contextualAssign: ContextualAssignment): T
 }
