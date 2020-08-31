@@ -15,6 +15,7 @@ enum class TokenType(val regex: String) {
     LET("let"),
     EXTEND("extend"),
     RETURN("return"),
+    WHILE("while"),
     MUT("mut"),
     STRUCT("struct"),
     NAMESPACE("namespace"),
@@ -22,16 +23,27 @@ enum class TokenType(val regex: String) {
     IF("if"),
     ELSE("else"),
 
-    OPERATOR("[+\\-*/%]"),
+    ADD("\\+"),
+    SUBTRACT("\\-"),
+    MULTIPLY("\\*"),
+    DIVIDE("/"),
+    REMAINDER("%"),
     AND("&&"),
     OR("\\|\\|"),
     XOR("\\^"),
     EQUALS("==(?!>)"),
+    NOTEQUALS("!=(?!>)"),
+    GREATEREQUAL("\\>="),
+    GREATER("\\>"),
+    LESSER("\\<"),
+    LESSEREQUAL("\\<="),
+    NOT("!"),
     DEF("=(?![>=])"),
     ARROW("=>"),
 
     DOT("\\."),
 
+    BOOLEAN("(true)|(false)"),
     STRING("\".*\""),
     NUMBER("[+-]?[0-9]+(\\.[0-9]+)?"),
 
@@ -39,7 +51,8 @@ enum class TokenType(val regex: String) {
     COLON(":"),
     SLASH("/"),
 
-    IDENTIFIER("[^,.#{}\\[\\]\"\\s)(]+"); //this has the potential to get *very* messy...
+    IDENTIFIER("[^,.:#{}\\[\\]\"\\s)(]+"),//this has the potential to get *very* messy...
+    OPERATOR("qe"); //REMOVE
 
     companion object {
         // Creating regex to capture tokens

@@ -2,6 +2,7 @@ package io.github.elaralang.elara.test.parser
 
 import io.github.elaralang.elara.lexer.ElaraLexer
 import io.github.elaralang.elara.parser.ElaraParser
+import io.github.elaralang.elara.parser.TokenStack
 import org.junit.jupiter.api.Test
 import kotlin.system.measureTimeMillis
 
@@ -55,15 +56,16 @@ class PerformanceTests {
     @Test
     fun `Test Parser Performance For Arithmetic`() {
         checkParseTimeBound(
-                """
+            """
             let a = a + b * c + (a + b + c) * c
         """.trimIndent(), 10
         )
     }
+
     @Test
     fun `Test Parser Performance For Boolean Expressions`() {
         checkParseTimeBound(
-                """
+            """
             let a = a && b || (c && d)
         """.trimIndent(), 10
         )
@@ -71,8 +73,8 @@ class PerformanceTests {
 
 
     private fun checkParseTimeBound(snippet: String, upperBound: Int) {
-        val lexOutput = ElaraLexer().lex(snippet)
-        val timeTaken = measureTimeMillis { ElaraParser(lexOutput).parse() }
+        val tokens = ElaraLexer().lex(snippet)
+        val timeTaken = measureTimeMillis { ElaraParser().parse(TokenStack(tokens)) }
         println("Completed parsing input in $timeTaken ms")
         assert(timeTaken < upperBound)
     }
