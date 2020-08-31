@@ -7,23 +7,25 @@ import io.github.elaralang.elara.parser.*
 
 class ElaraEvaluator: ExpressionVisitor<Any>, StatementVisitor<Unit> {
 
-    var env = Environment()
+    private var env = Environment()
 
-    fun evaluate(statements: List<Statement>){
+    fun evaluate(statements: List<Statement>): Any {
+        var last: Any = Unit
         for (statement in statements) {
-            execute(statement)
+            last = execute(statement)
         }
+        return last
     }
 
     fun evaluate(expr: Expression): Any {
         return expr.accept(this)
     }
-    private fun execute(statement: Statement) {
-        statement.accept(this)
+    private fun execute(statement: Statement): Any {
+        return statement.accept(this)
     }
 
     override fun visitLiteral(literal: Literal<*>): Any {
-        return literal.value;
+        return literal.value
     }
 
     override fun visitGroupExpr(grpExpr: GroupExpression): Any {
@@ -40,14 +42,14 @@ class ElaraEvaluator: ExpressionVisitor<Any>, StatementVisitor<Unit> {
         }
     }
 
-    override fun visitLogicalExpr(logicalExpr: LogicalExpression): Any {
-        val lhs = coerceToBoolean(evaluateExpr(logicalExpr.lhs))
-        val rhs = coerceToBoolean(evaluateExpr(logicalExpr.rhs))
-        return when(logicalExpr.op.op) {
+    override fun visitLogicalExpr(assignment: LogicalExpression): Any {
+        val lhs = coerceToBoolean(evaluateExpr(assignment.lhs))
+        val rhs = coerceToBoolean(evaluateExpr(assignment.rhs))
+        return when(assignment.op.op) {
             Operator.AND -> lhs && rhs
             Operator.OR -> lhs || rhs
             Operator.XOR -> lhs xor rhs
-            else -> throw parserException("Invalid Logical Operator parsed... ${logicalExpr.op}")
+            else -> throw parserException("Invalid Logical Operator parsed... ${assignment.op}")
         }
     }
 
@@ -69,8 +71,8 @@ class ElaraEvaluator: ExpressionVisitor<Any>, StatementVisitor<Unit> {
             else -> parserException("Parser invalidly parsed unknown operator as Binary Operator")
         }
     }
-    override fun visitExpressionStatement(exprStmt: ExpressionStatement) {
-        evaluateExpr(exprStmt.expression)
+    override fun visitExpressionStatement(exprStmt: ExpressionStatement): Any {
+        return evaluateExpr(exprStmt.expression)
     }
 
     override fun visitVariableDeclarationStatement(exprStmt: VariableDeclarationStatement) {
@@ -127,15 +129,15 @@ class ElaraEvaluator: ExpressionVisitor<Any>, StatementVisitor<Unit> {
     }
 
     override fun visitFunctionDefinition(funcDef: FunctionDefinition): Any {
-        val returns = funcDef.returnType
-        val args = funcDef.arguments
-        val body = funcDef.body
+//        val returns = funcDef.returnType
+//        val args = funcDef.arguments
+//        val body = funcDef.body
         TODO("Define function type")
     }
 
     override fun visitInvocation(invoke: FunctionInvocation): Any {
-        val function = evaluate(invoke.invoker)
-        val args = invoke.parameters
+//        val function = evaluate(invoke.invoker)
+//        val args = invoke.parameters
         TODO("Define function type")
     }
 

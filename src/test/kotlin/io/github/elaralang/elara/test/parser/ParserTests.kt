@@ -10,7 +10,6 @@ import kotlin.test.assertEquals
  */
 class ParserTests {
     private val lexer = ElaraLexer()
-    val a = mapOf("root" to "1.0.0", "lib" to "1.0.0")
 
     @Test
     fun `Test Correct Parsing of Basic Assignment Statement`() {
@@ -84,7 +83,7 @@ class ParserTests {
             this someFunction param1 123 param3
         """.trimIndent()
         val tokens = lexer.lex(text)
-        val ast = ElaraParser().parse(TokenStack(tokens))
+        ElaraParser().parse(TokenStack(tokens))
     }
 
     @Test
@@ -95,7 +94,7 @@ class ParserTests {
             }
         """.trimIndent()
         val tokens = lexer.lex(text)
-        val ast = ElaraParser().parse(TokenStack(tokens))
+        ElaraParser().parse(TokenStack(tokens))
     }
 
     @Test
@@ -120,10 +119,7 @@ class ParserTests {
             someStructInstance.someField
         """.trimIndent()
         val tokens = lexer.lex(text)
-        val ast = ElaraParser().parse(TokenStack(tokens))
-        print(ast)
-
-        val a = 5 + 6.toLong()
+        ElaraParser().parse(TokenStack(tokens))
     }
 
     @Test
@@ -180,7 +176,7 @@ class ParserTests {
                 this print b
             }
         """.trimIndent()
-        val tokens = lexer.lex(text)
+        lexer.lex(text)
 //        val ast = ElaraParser(tokens).parse()
 //        print(ast)
     }
@@ -192,7 +188,7 @@ class ParserTests {
                 let sayHi = :() => this print "hi"
             }
         """.trimIndent()
-        val tokens = lexer.lex(text)
+        lexer.lex(text)
 //        val ast = ElaraParser(tokens).parse()
 //        print(ast)
 
@@ -204,7 +200,7 @@ class ParserTests {
         val text = """
             let expr = (a + b + c) + b * c + a + (b * c)
         """.trimIndent()
-        val tokens = lexer.lex(text)
+        lexer.lex(text)
 //        val ast = ElaraParser(tokens).parse()
 //        print(ast)
 
@@ -215,7 +211,7 @@ class ParserTests {
         val text = """
             a && (b == c) || (a ^ b ^ c)
         """.trimIndent()
-        val tokens = lexer.lex(text)
+        lexer.lex(text)
 //        val ast = ElaraParser(tokens).parse()
 //        print(ast)
 
@@ -226,7 +222,7 @@ class ParserTests {
         val text = """
             someFunction param1 123
         """.trimIndent()
-        val tokens = lexer.lex(text)
+        lexer.lex(text)
 //        val ast = ElaraParser(tokens).parse()
 
     }

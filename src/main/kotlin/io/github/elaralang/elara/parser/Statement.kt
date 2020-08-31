@@ -51,7 +51,7 @@ class WhileStatement(val condition: Expression, val body: Statement): Statement(
 
 
 interface StatementVisitor<T> {
-    fun visitExpressionStatement(exprStmt: ExpressionStatement)
+    fun visitExpressionStatement(exprStmt: ExpressionStatement): Any
     fun visitVariableDeclarationStatement(exprStmt: VariableDeclarationStatement)
     fun visitBlockStatement(exprStmt: BlockStatement)
     fun visitIfElseStatement(ifElseStmt: IfElseStatement)
