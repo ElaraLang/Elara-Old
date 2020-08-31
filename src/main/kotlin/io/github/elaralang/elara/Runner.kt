@@ -42,7 +42,9 @@ fun execute(code: String) {
 
     val last = evaluator.evaluate(ast)
 
+    println("=======================")
     println(code)
+    println("=======================")
     println("Result: $last")
     println()
 }
