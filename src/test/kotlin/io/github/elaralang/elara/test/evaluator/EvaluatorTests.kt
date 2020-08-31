@@ -43,4 +43,22 @@ class EvaluatorTests {
         println("Result: $last")
         assertEquals(false, last)
     }
+
+    @Test
+    fun `Test Basic Evaluation 3 `() {
+        val code = """
+            let print-hello = :() => { 
+                this print "Hello" 
+            }
+            print-hello()
+        """.trimIndent()
+
+        val tokens = lexer.lex(code)
+        val ast = parser.parse(tokens)
+
+        val last = evaluator.evaluate(ast)
+        println(code)
+        println("Result: $last")
+        assertEquals(false, last)
+    }
 }

@@ -17,3 +17,11 @@ let is-overage = (Int age) => {
 21 is-overage
 
 is-overage 21
+
+let fact = (Int n) => {
+    if n == 1 => return 1
+    else => return n * fact(n - 1)
+}
+
+print fact 5
+//prints 5
