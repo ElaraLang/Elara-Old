@@ -477,6 +477,36 @@ class ParserTests {
         )
 
     }
+    @Test
+    fun `Test Correct Parsing of Procedure Function`() {
+        val text = """
+            let sayHi => print(5)
+        """.trimIndent()
+        val tokens = lexer.lex(text)
+        val ast = ElaraParser().parse(TokenStack(tokens))
+        println(ast)
+        val expectation = mutableListOf<Statement>(
+            VariableDeclarationStatement(
+                false,
+                "sayHi",
+                FunctionDefinition(
+                    "ElaraUnit",
+                    listOf(),
+                    ExpressionStatement(
+                        FunctionInvocation(
+                            Variable("print"),
+                            listOf(
+                                Literal(5)
+                            )
+                        )
+                    )
+                )
+            )
+        )
+        println(expectation)
+        assertEquals(
+            expectation.toString(), ast.toString()
+        )
+    }
 
-   
 }

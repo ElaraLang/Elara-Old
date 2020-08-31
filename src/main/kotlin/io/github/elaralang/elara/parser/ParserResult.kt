@@ -129,7 +129,12 @@ class ParserResult(val stack: TokenStack) {
         val mutable = stack popIf TokenType.MUT
         val identifier = (stack expect TokenType.IDENTIFIER).text
         val type = if (stack popIf TokenType.COLON) (stack expect TokenType.IDENTIFIER).text else "null"
-
+        if (stack isAt  TokenType.ARROW) {
+            stack.push(Token(TokenType.RPAREN, "("))
+            stack.push(Token(TokenType.LPAREN, ")"))
+            stack.push(Token(TokenType.COLON, ":"))
+            stack.push(Token(TokenType.DEF, "="))
+        }
         stack expect TokenType.DEF
         val expr = parseExpression()
         return VariableDeclarationStatement(mutable, identifier, expr, type)
