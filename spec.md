@@ -24,32 +24,34 @@ for example `(Int) => String`
 Variable Declaration:
 
 `let [name] = [value]`
-```
+```antlrv4
 LET identifer EQUAL expression;
 ```
 
 Variable Declaration with Explicit Type:
 
 `let [name]: [Type] = value`
-```
+```antlrv4
 LET identifer COLON type EQUAL expression;
 ```
 
 Function Literals:
 `([Type] [name], [Type2] [name2], etc) => ReturnType? {}`
-```
+```antlrv4
 functionLiteral:
-    LPAREN (param (COMMA param)*)? RPAREN ARROW type? BLOCK;
+    LPAREN (param (COMMA param)*)? RPAREN ARROW type? BLOCK
+    ;
 
 param: 
-    type identifier;
+    type identifier
+    ;
 ```
 
 Single Expression Functions:
 
 `let [name] => [expression]`
-```
-LET identifier ARROW expression
+```antlrv4
+LET identifier ARROW expression;
 ```
 
 Function Calling:
@@ -57,4 +59,57 @@ Function Calling:
 Simple function calling is the same as most languages:
 `function-name()`
 
+For functions with arguments, parentheses can commas can be omitted:
 
+`function-name(arg1, arg2)`
+`function-name arg1 arg2`
+
+Receiver functions can also be invoked as if they were methods:
+
+```
+receiver-function param1 param2
+param1 receiver-function param2
+receiver-function(param1, param2)
+param1.receiver-function(param2)
+```
+
+These are all functionally identical
+
+
+### Structs
+Struct declaration is simple:
+```
+struct [StructName] {
+    Type property-name
+} 
+```
+
+```antlrv4
+structDeclaration: 
+    STRUCT identifier LCPAREN structBody RCPAREN
+    ;
+
+structBody:
+    structPropertyDeclaration*
+    ;
+
+structPropertyDeclaration:
+    identifier identifier (EQUAL expression)?
+    ;
+```
+
+Struct extending can be done anywhere in any file:
+```
+extend [StructName] {
+    [let] | [struct]
+}
+```
+
+```antlrv4
+structExtension:
+    EXTEND identifier LCPAREN extensionBody RCPAREN
+    ;
+extensionBody:
+    (variableDeclaration | structDeclaration)+
+    ;
+```
