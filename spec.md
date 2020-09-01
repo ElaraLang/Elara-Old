@@ -113,3 +113,75 @@ extensionBody:
     (variableDeclaration | structDeclaration)+
     ;
 ```
+
+### Generics
+
+Generics will *probably* only be applicable to functions, with the following syntax:
+```
+<T>
+let func-name = () => {}
+```
+
+This creates a single, unbound type parameter named `T`
+
+Bound parameters are simple:
+`<T: Int>`
+
+Parameters can also be bound by contract, eg:
+```
+<T { add(T) => Unit }>
+```
+will only accept types that define a function named `add` with the signature `T => Unit`
+
+We can of course combine the two:
+```
+<T: Number { add(T) => Unit }> 
+``` 
+
+```antlrv4
+typeParameters:
+    LANGLE_BRACKET typeParameter+ RANGLE_BRACKET
+    ;
+
+typeParameter
+    : unboundTypeParameter
+    | boundTypeParameter
+    ;
+
+unboundTypeParameter:
+    identifier
+    ;
+
+boundTypeParameter
+    : upperBoundTypeParameter
+    | contractBoundTypeParameter
+    | fullyBoundTypeParameter
+    ;
+
+upperBoundTypeParameter:
+    identifier COLON identifer
+    ;
+ 
+contractBoundTypeParameter: 
+    identifer LCPAREN contractSpec+ RCPAREN
+    ;
+
+contractSpec: 
+    identifier LPAREN (identifier)* RPAREN ARROW identifier
+    ;
+
+fullyBoundTypeParameter:
+   upperBoundTypeParameter LCPAREN contractSpec+ RCPAREN
+    ;
+```
+
+## Runtime
+
+### Simple Types
+* Int - represents a single integer, implementation will probably be 64-bit
+* Float - a floating-point number, probably 64-bit again
+* Number - any number
+* Char - a single Unicode character
+* String - a string of characters
+* Any - any type
+
