@@ -84,6 +84,15 @@ struct [StructName] {
 } 
 ```
 
+For example:
+```
+struct Person {
+    String name
+    mut Int age
+    Sex sex
+}
+```
+
 ```antlrv4
 structDeclaration: 
     STRUCT identifier LCPAREN structBody RCPAREN
