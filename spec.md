@@ -1,5 +1,5 @@
 # Elara Language Specification
-This uses ANTLR Grammar Syntax to describe all elements of the Elara Language.
+This uses [ANTLR4 Grammar Syntax](https://github.com/antlr/antlr4/blob/master/doc/index.md) to describe elements of the Elara Language.
 
 ## Names and conventions
 **Types** have names in PascalCase, and should be short and simple, eg `Int`, `String`, `Person`
