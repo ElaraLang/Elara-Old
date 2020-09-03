@@ -175,6 +175,12 @@ fullyBoundTypeParameter:
     ;
 ```
 
+## Glossary
+**Variable** - A piece of data scoped to either a file or a function
+**Property** - A piece of data scoped to a struct
+**Struct** - A data-only structure composed of multiple other properties, with a type, name, and optional default value.
+**Function** - A repeatable procedure of code, ideally representing a pure transformation between input and output. 
+
 ## Runtime
 
 ### Simple Types
