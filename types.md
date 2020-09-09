@@ -1,4 +1,4 @@
-#Elara Type System
+# Elara Type System
 
 Elara's Type System is predomininantly **Contract Based**. That is, type B can be used in place of type A if B has the contract of A. 
 We define "having a contract" as either:
