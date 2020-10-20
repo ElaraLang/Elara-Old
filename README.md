@@ -3,6 +3,7 @@
 </p>
 
 # Elara
+https://discord.gg/xu5gSTV
 
 Elara is a multi-paradigm (although primarily functional) language with a clean syntax with little "noise"
  
